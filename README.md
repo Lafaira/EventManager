@@ -9,8 +9,8 @@
 | GET | /events | Получение всех событий| | 
 | GET | /events/{id}| Получение события по id|  | 
 | POST | /events | Добавить новое событие| `{"title":"string","startAt":"2026-01-01T00:00:00Z","endAt":"2026-01-01T01:00:00Z"}` | 
-| PUT | /eventd/{id} | Изменение данных события| `{"title":"string","startAt":"2026-01-01T00:00:00Z","endAt":"2026-01-01T01:00:00Z"}` |
-| DELETE | /eventd/{id} | Удалить событие|  |
+| PUT | /events/{id} | Изменение данных события| `{"title":"string","startAt":"2026-01-01T00:00:00Z","endAt":"2026-01-01T01:00:00Z"}` |
+| DELETE | /events/{id} | Удалить событие|  |
 
 > Запустите проект командой dotnet build dotnet run. Обратитесь к документации по пути http://localhost:5063/swagger/index.html
 

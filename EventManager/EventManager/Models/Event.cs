@@ -2,7 +2,7 @@
 
 namespace EventManager.Models
 {
-    public class Event
+    public class Event : IValidatableObject
     {
         [Required(ErrorMessage = "Id обязателен для заполнения")]
         public int Id { get; set; }
@@ -18,5 +18,13 @@ namespace EventManager.Models
         [Required(ErrorMessage = "Дата окночания обязательна для заполнения")]
         [Range(typeof(DateTime), "2020-01-01", "2030-12-31", ErrorMessage = "Некорректная дата")]
         public DateTime EndAt { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (EndAt <= StartAt)
+            {
+                yield return new ValidationResult("Дата окончания должна быть позднее даты начала", new[] { nameof(EndAt) });
+            }
+        }
     }
 }

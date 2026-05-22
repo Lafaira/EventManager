@@ -1,6 +1,7 @@
 ﻿using EventManager.Models;
 using EventManager.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Net;
 
 namespace EventManager.Controllers
@@ -15,21 +16,21 @@ namespace EventManager.Controllers
         }
 
         [HttpGet("events")]
-        public async Task<ApiResult<List<Event>>> GetAllEvents()
+        public async Task<IActionResult> GetAllEvents()
         {
             var events = _eventService.GetAllEvents();
 
-            return new ApiResult<List<Event>>()
+            return Ok( new ApiResult<List<Event>>()
             {
                 Data = events,
                 Success =true,
                 StatusCode = HttpStatusCode.OK,
                 Message = string.Empty
-            };
+            });
         }
 
         [HttpGet("events/{id}")]
-        public async Task<ApiBaseResult> GetEvent(int id)
+        public async Task<IActionResult> GetEvent(int id)
         {
             Event? eventItem = null;
 
@@ -39,25 +40,25 @@ namespace EventManager.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResult()
+                return NotFound( new ApiResult()
                 {
                     Success = false,
                     StatusCode = HttpStatusCode.NotFound,
                     Message = ex.Message
-                };
+                });
             }
 
-            return new ApiResult<Event>()
+            return Ok( new ApiResult<Event>()
             {
                 Data = eventItem,
                 Success = true,
                 StatusCode = HttpStatusCode.OK,
                 Message = string.Empty
-            };
+            });
         }
 
         [HttpPost("events")]
-        public async Task<ApiResult> PostEvent([FromBody] Event eventItem)
+        public async Task<IActionResult> PostEvent([FromBody] Event eventItem)
         {
             try
             {
@@ -67,24 +68,19 @@ namespace EventManager.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResult()
+                return NotFound( new ApiResult()
                 {
                     Success = false,
                     StatusCode = HttpStatusCode.NotFound,
                     Message = ex.Message
-                };
+                });
             }
 
-            return new ApiResult()
-            {
-                Success = true,
-                StatusCode = HttpStatusCode.OK,
-                Message = string.Empty
-            };
+            return Created();
         }
 
-        [HttpPut("eventd/{id}")]
-        public async Task<ApiResult> PutEvent(int id, [FromBody] Event updatedEvent)
+        [HttpPut("events/{id}")]
+        public async Task<IActionResult> PutEvent(int id, [FromBody] Event updatedEvent)
         {
             try
             {
@@ -94,24 +90,24 @@ namespace EventManager.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResult()
+                return NotFound( new ApiResult()
                 {
                     Success = false,
                     StatusCode = HttpStatusCode.NotFound,
                     Message = ex.Message
-                };
+                });
             }
 
-            return new ApiResult()
+            return Ok( new ApiResult()
             {
                 Success = true,
                 StatusCode = HttpStatusCode.OK,
                 Message = string.Empty
-            };
+            });
         }
 
         [HttpDelete("events/{id}")]
-        public async Task<ApiResult> DeleteEvent(int id)
+        public async Task<IActionResult> DeleteEvent(int id)
         {
             try
             {
@@ -119,20 +115,20 @@ namespace EventManager.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResult()
+                return NotFound( new ApiResult()
                 {
                     Success = false,
                     StatusCode = HttpStatusCode.NotFound,
                     Message = ex.Message
-                };
+                });
             }
 
-            return new ApiResult()
+            return Ok(new ApiResult()
             {
                 Success = true,
                 StatusCode = HttpStatusCode.OK,
                 Message = string.Empty
-            };
+            });
         }
     }
 }

@@ -1,3 +1,4 @@
+using EventManager.Middleware;
 using EventManager.Services;
 using EventManager.Services.Interfaces;
 using Microsoft.OpenApi;
@@ -19,10 +20,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 builder.Services.AddSingleton<IEventService, EventService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,12 +1,13 @@
 ﻿using EventManager.Models;
+using EventManager.Models.RequestModel;
 
 namespace EventManager.Services.Interfaces
 {
     public interface IEventService
     {
-        public List<Event> GetAllEvents();
+        public PaginatedResult GetAllEvents(PageInfo pageInfo, GetEventsQuery? filterData);
         public Event GetEvent(int id);
-        public bool PostEvent(Event eventItem);
+        public Event PostEvent(Event eventItem);
         public bool PutEvent(int id, Event updatedEvent);
         public bool DeleteEvent(int id);
     }

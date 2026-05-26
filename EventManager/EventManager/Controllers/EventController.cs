@@ -1,4 +1,5 @@
 ﻿using EventManager.Models;
+using EventManager.Models.RequestModel;
 using EventManager.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -16,17 +17,11 @@ namespace EventManager.Controllers
         }
 
         [HttpGet("events")]
-        public async Task<IActionResult> GetAllEvents()
+        public async Task<IActionResult> GetAllEvents([FromQuery] GetEventsQuery? filterData, [FromQuery] PageInfo pageInfo )
         {
-            var events = _eventService.GetAllEvents();
+            var events = _eventService.GetAllEvents(pageInfo, filterData);
 
-            return Ok( new ApiResult<List<Event>>()
-            {
-                Data = events,
-                Success =true,
-                StatusCode = HttpStatusCode.OK,
-                Message = string.Empty
-            });
+            return Ok(events);
         }
 
         [HttpGet("events/{id}")]
@@ -34,101 +29,40 @@ namespace EventManager.Controllers
         {
             Event? eventItem = null;
 
-            try
-            {
-                eventItem = _eventService.GetEvent(id);
-            }
-            catch (Exception ex)
-            {
-                return NotFound( new ApiResult()
-                {
-                    Success = false,
-                    StatusCode = HttpStatusCode.NotFound,
-                    Message = ex.Message
-                });
-            }
-
-            return Ok( new ApiResult<Event>()
-            {
-                Data = eventItem,
-                Success = true,
-                StatusCode = HttpStatusCode.OK,
-                Message = string.Empty
-            });
+            eventItem = _eventService.GetEvent(id);
+           
+            return Ok(eventItem);
         }
 
         [HttpPost("events")]
         public async Task<IActionResult> PostEvent([FromBody] Event eventItem)
         {
-            try
-            {
-                if (eventItem == null) throw new Exception("Пользователь не заполнил событие");
+            if (eventItem == null) throw new NotFoundException("Пользователь не заполнил событие");
 
-                _eventService.PostEvent(eventItem);
-            }
-            catch (Exception ex)
-            {
-                return NotFound( new ApiResult()
-                {
-                    Success = false,
-                    StatusCode = HttpStatusCode.NotFound,
-                    Message = ex.Message
-                });
-            }
-
-            return Created();
+            var saveEvent = _eventService.PostEvent(eventItem);
+           
+            return CreatedAtAction(nameof(GetEvent), 
+            new { id = saveEvent.Id },
+            saveEvent);
         }
 
         [HttpPut("events/{id}")]
         public async Task<IActionResult> PutEvent(int id, [FromBody] Event updatedEvent)
         {
-            try
-            {
-                if (updatedEvent == null) throw new Exception("Пользователь не заполнил событие");
+            if (updatedEvent == null) throw new NotFoundException("Пользователь не заполнил событие");
 
-                _eventService.PutEvent(id, updatedEvent);
-            }
-            catch (Exception ex)
-            {
-                return NotFound( new ApiResult()
-                {
-                    Success = false,
-                    StatusCode = HttpStatusCode.NotFound,
-                    Message = ex.Message
-                });
-            }
+            _eventService.PutEvent(id, updatedEvent);
 
-            return Ok( new ApiResult()
-            {
-                Success = true,
-                StatusCode = HttpStatusCode.OK,
-                Message = string.Empty
-            });
+
+            return Ok();
         }
 
         [HttpDelete("events/{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
-            try
-            {
-                _eventService?.DeleteEvent(id);
-            }
-            catch (Exception ex)
-            {
-                return NotFound( new ApiResult()
-                {
-                    Success = false,
-                    StatusCode = HttpStatusCode.NotFound,
-                    Message = ex.Message
-                });
-            }
-
-            return Ok(new ApiResult()
-            {
-                Success = true,
-                StatusCode = HttpStatusCode.OK,
-                Message = string.Empty
-            });
+            _eventService?.DeleteEvent(id);
+            
+            return Ok();
         }
     }
 }

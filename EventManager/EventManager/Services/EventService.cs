@@ -9,7 +9,7 @@ namespace EventManager.Services
 {
     public class EventService : IEventService
     {
-        IEnumerable<Event> _events;
+        List<Event> _events;
         public EventService()
         {
             _events = new List<Event>()
@@ -72,7 +72,7 @@ namespace EventManager.Services
             var eventItemExist = _events.Where(x => x.Id == eventItem.Id).FirstOrDefault();
             if (eventItemExist != null) throw new NotFoundException("Событие с таким id уже существует");
 
-            _events.ToList().Add(eventItem);
+            _events.Add(eventItem);
             return eventItem;
         }
 
@@ -92,7 +92,7 @@ namespace EventManager.Services
         {
             var eventItem = _events.Where(x => x.Id == id).FirstOrDefault() ?? throw new NotFoundException("Нет события с таким id");
 
-            _events.ToList().Remove(eventItem);
+            _events.Remove(eventItem);
             return true;
         }
     }

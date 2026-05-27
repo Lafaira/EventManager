@@ -3,6 +3,7 @@ using EventManager.Models.RequestModel;
 using EventManager.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 
 namespace EventManager.Controllers
@@ -37,7 +38,7 @@ namespace EventManager.Controllers
         [HttpPost("events")]
         public async Task<IActionResult> PostEvent([FromBody] Event eventItem)
         {
-            if (eventItem == null) throw new NotFoundException("Пользователь не заполнил событие");
+            if (eventItem == null) throw new ValidationException("Пользователь не заполнил событие");
 
             var saveEvent = _eventService.PostEvent(eventItem);
            
@@ -49,7 +50,7 @@ namespace EventManager.Controllers
         [HttpPut("events/{id}")]
         public async Task<IActionResult> PutEvent(int id, [FromBody] Event updatedEvent)
         {
-            if (updatedEvent == null) throw new NotFoundException("Пользователь не заполнил событие");
+            if (updatedEvent == null) throw new ValidationException("Пользователь не заполнил событие");
 
             _eventService.PutEvent(id, updatedEvent);
 

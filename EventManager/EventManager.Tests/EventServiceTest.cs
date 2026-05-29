@@ -1,7 +1,11 @@
 ﻿using EventManager.Models;
 using EventManager.Models.RequestModel;
 using EventManager.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
+using System.Net.Http.Json;
 
 namespace EventManager.Tests
 {
@@ -160,5 +164,27 @@ namespace EventManager.Tests
             Assert.Equal("Дата окончания должна быть позднее даты начала", results[0].ErrorMessage);
         }
 
+        [Fact]
+        public async Task PutEvent_ReturnDataValidationError()
+        {
+            var eventItem = new Event()
+            {
+                Id = 1,
+                Title = "PutTitle",
+                Description = "Description",
+                StartAt = new DateTime(2027, 09, 11),
+                EndAt = new DateTime(2026, 10, 11),
+            };
+
+            using var factory = new WebApplicationFactory<Program>();
+
+            using var client = factory.CreateClient();
+
+            var response = await client.PutAsJsonAsync("events/1", eventItem);
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.True(content.Contains("Дата окончания должна быть позднее даты начала"));
+        }
     }
 }

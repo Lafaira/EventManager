@@ -49,14 +49,15 @@ namespace EventManager.Services
                     events = events.Where(x => x.EndAt <= filterData.To);
             }
 
+            int countFilterEvent = events.Count();
             events = events.Skip((pageInfo.Page - 1) * pageInfo.PageSize).Take(pageInfo.PageSize);
 
             return new PaginatedResult()
             {
-                CountEvent= events.Count(),
+                CountEvent= countFilterEvent,
                 EventArr = events.ToArray(), 
                 NumberCurrentPage = pageInfo.Page,
-                CountEventInPage = pageInfo.PageSize
+                CountEventInPage = events.Count()
             };
         }
 

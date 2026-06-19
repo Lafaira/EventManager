@@ -96,5 +96,10 @@ namespace EventManager.Services
             _events.Remove(eventItem);
             return true;
         }
+
+        public bool CheckAvailability(int id)
+        {
+            return _events.Any(x => x.Id == id);
+        }
     }
 }

@@ -21,6 +21,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddSingleton<IEventService, EventService>();
+builder.Services.AddSingleton<IBookingService, BookingService>();
+builder.Services.AddSingleton<IBookingQueue, BookingQueue>();
+builder.Services.AddHostedService<BookingBackgroundService>();
 
 var app = builder.Build();
 

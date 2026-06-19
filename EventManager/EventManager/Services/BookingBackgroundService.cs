@@ -6,12 +6,12 @@ namespace EventManager.Services
     {
         private ILogger<BookingBackgroundService> _logger;
         private IBookingQueue _queue;
-        private IBookingService _bookingServicecs;
-        public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingQueue queue, IBookingService bookingServicecs)
+        private IBookingService _bookingService;
+        public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingQueue queue, IBookingService bookingService)
         {
             _logger = logger;
             _queue = queue;
-            _bookingServicecs = bookingServicecs;
+            _bookingService = bookingService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -22,24 +22,12 @@ namespace EventManager.Services
             {
                 try
                 {
-                    if (_queue.TryDequeue(out var task))
+                    if (_queue.TryDequeue(out var booking))
                     {
                        
                         await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
 
-                        var isCreate =_bookingServicecs.SaveBooking(task);
-
-                        if(isCreate)
-                        {
-                            task.Status = Models.BookingStatus.Confirmed;
-                            task.ProcessedAt = DateTime.UtcNow;
-                        }
-                        else
-                        {
-                            task.Status = Models.BookingStatus.Rejected;
-                            task.ProcessedAt = DateTime.UtcNow;
-                        }
-
+                        booking.Status = Models.BookingStatus.Confirmed;
 
                     }
                 }

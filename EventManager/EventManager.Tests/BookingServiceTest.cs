@@ -40,8 +40,8 @@ namespace EventManager.Tests
             .Setup(x => x.CheckAvailability(eventId))
             .Returns(true);
             */
-            var result1 = _bookingService.CreateBooking(eventId);
-            var result2 = _bookingService.CreateBooking(eventId);
+            var result1 = _bookingService.CreateBookingAsync(eventId);
+            var result2 = _bookingService.CreateBookingAsync(eventId);
 
             Assert.Equal(eventId, result1.EventId);
             Assert.Equal(BookingStatus.Pending, result1.Status);
@@ -53,15 +53,12 @@ namespace EventManager.Tests
         [Fact]
         public async Task BookingBackgroundService_ReturnCorrectResult()
         {
-            var booking = new Booking
-            {
-                Id = Guid.NewGuid(),
-                EventId = 1,
-                Status = BookingStatus.Pending
-            };
+
+            
+            var result = _bookingService.CreateBookingAsync(1);
 
             var queue = new BookingQueue();
-            queue.Enqueue(booking);
+            queue.Enqueue(result);
 
             var service = new BookingBackgroundService(
             _loggerMock.Object,
@@ -72,10 +69,10 @@ namespace EventManager.Tests
             await service.StartAsync(cts.Token);
 
             await Task.Delay(TimeSpan.FromSeconds(10));
-            var result3 = _bookingService.GetBookingById(booking.Id);
+            var result2 = _bookingService.GetBookingByIdAsync(result.Id);
 
-            Assert.Equal(result3.Status, BookingStatus.Confirmed);
-            Assert.Equal(result3.Id, booking.Id);
+            Assert.Equal(result2.Status, BookingStatus.Confirmed);
+            Assert.Equal(result2.Id, result.Id);
 
             await service.StopAsync(cts.Token);
         }
@@ -85,7 +82,7 @@ namespace EventManager.Tests
         {
             int eventId = 6;
 
-            Assert.Equal("Событие с таким id не существует", Assert.Throws<NotFoundException>(() => _bookingService.CreateBooking(eventId)).Message);
+            Assert.Equal("Событие с таким id не существует", Assert.Throws<NotFoundException>(() => _bookingService.CreateBookingAsync(eventId)).Message);
         }
 
         [Fact]
@@ -98,7 +95,7 @@ namespace EventManager.Tests
                 Status = BookingStatus.Pending
             };
 
-            Assert.Equal("Брони с таким id не существует", Assert.Throws<NotFoundException>(() => _bookingService.GetBookingById(booking.Id)).Message);
+            Assert.Equal("Брони с таким id не существует", Assert.Throws<NotFoundException>(() => _bookingService.GetBookingByIdAsync(booking.Id)).Message);
         }
 
         [Fact]
@@ -113,20 +110,13 @@ namespace EventManager.Tests
                 EndAt = new DateTime(2026, 01, 01)
             };
 
-            var booking = new Booking
-            {
-                Id = Guid.NewGuid(),
-                EventId = eventItem.Id,
-                Status = BookingStatus.Pending
-            };
-
             var resultEvent = _eventService.PostEvent(eventItem);
 
-             _bookingService.SaveBooking(booking);
+            var resultBooking = _bookingService.CreateBookingAsync(resultEvent.Id);
 
             _eventService.DeleteEvent(resultEvent.Id);
 
-            var result = _bookingService.GetBookingById(booking.Id);
+            var result = _bookingService.GetBookingByIdAsync(resultBooking.Id);
 
             Assert.Equal(result.Status, BookingStatus.Rejected);
         }

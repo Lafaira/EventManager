@@ -4,8 +4,7 @@ namespace EventManager.Services.Interfaces
 {
     public interface IBookingService
     {
-        public Booking CreateBooking(int eventId);
-        public Booking GetBookingById(Guid bookingId);
-        public bool SaveBooking(Booking booking);
+        public Booking CreateBookingAsync(int eventId);
+        public Booking GetBookingByIdAsync(Guid bookingId);
     }
 }

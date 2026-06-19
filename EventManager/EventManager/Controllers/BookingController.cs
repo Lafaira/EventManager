@@ -9,19 +9,16 @@ namespace EventManager.Controllers
     [ApiController]
     public class BookingController : Controller
     {
-        IBookingService _bookingServicecs;
-        public BookingController(IBookingService bookingServicecs) 
+        IBookingService _bookingService;
+        public BookingController(IBookingService bookingService) 
         {
-            _bookingServicecs = bookingServicecs;
+            _bookingService = bookingService;
         }
 
         [HttpPost("events/{id}/book")]
         public IActionResult PostCreateBooking(int id)
         {
-            var booking = _bookingServicecs.CreateBooking(id);
-
-            if (booking == null)
-                return NotFound();
+            var booking = _bookingService.CreateBookingAsync(id);
 
             return AcceptedAtAction(
                 actionName: "GetBooking",
@@ -32,10 +29,7 @@ namespace EventManager.Controllers
         [HttpGet("bookings/{id}")]
         public IActionResult GetBooking(Guid id)
         {
-            var booking = _bookingServicecs.GetBookingById(id);
-
-            if (booking == null)
-                return NotFound();
+            var booking = _bookingService.GetBookingByIdAsync(id);
 
             return Ok(booking);
         }

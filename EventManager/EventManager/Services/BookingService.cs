@@ -28,23 +28,25 @@ namespace EventManager.Services
                 }
             };
         }
-        public Booking CreateBooking(int eventId)
+        public Booking CreateBookingAsync(int eventId)
         {
             if (!_eventService.CheckAvailability(eventId))
                 throw new NotFoundException("Событие с таким id не существует");
 
-            var task = new Booking()
+            var booking = new Booking()
             {
                 EventId = eventId,
                 Status = BookingStatus.Pending
             };
 
-            _queue.Enqueue(task);
+            _bookingList.Add(booking);
 
-            return task;
+            _queue.Enqueue(booking);
+
+            return booking;
         }
 
-        public Booking GetBookingById(Guid bookingId)
+        public Booking GetBookingByIdAsync(Guid bookingId)
         {
             if (!_bookingList.Any(x => x.Id == bookingId))
                 throw new NotFoundException("Брони с таким id не существует");
@@ -59,14 +61,5 @@ namespace EventManager.Services
             return result;
         }
 
-        public bool SaveBooking(Booking booking)
-        {
-            if (!_eventService.CheckAvailability(booking.EventId))
-                return false;
-
-            _bookingList.Add(booking);
-
-            return true;
-        }
     }
 }

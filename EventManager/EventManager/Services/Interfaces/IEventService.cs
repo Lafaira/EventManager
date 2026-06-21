@@ -10,5 +10,6 @@ namespace EventManager.Services.Interfaces
         public Event PostEvent(Event eventItem);
         public bool PutEvent(int id, Event updatedEvent);
         public bool DeleteEvent(int id);
+        public bool CheckAvailability(int id);
     }
 }

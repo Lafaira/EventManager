@@ -2,29 +2,40 @@
 
 namespace EventManager.Models
 {
-    public class Event : IValidatableObject
+    public class Event
     {
-        [Required(ErrorMessage = "Id обязателен для заполнения")]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Название обязателен для заполнения")]
         public string Title { get; set; }
         public string? Description { get; set; }
-
-        [Required(ErrorMessage = "Дата начала обязательна для заполнения")]
-        [Range(typeof(DateTime), "2020-01-01", "2030-12-31", ErrorMessage = "Некорректная дата")]
         public DateTime StartAt { get; set; }
-
-        [Required(ErrorMessage = "Дата окночания обязательна для заполнения")]
-        [Range(typeof(DateTime), "2020-01-01", "2030-12-31", ErrorMessage = "Некорректная дата")]
         public DateTime EndAt { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            if (EndAt <= StartAt)
+        private int _totalSeats;
+        public int TotalSeats {
+            get => _totalSeats;
+            set
             {
-                yield return new ValidationResult("Дата окончания должна быть позднее даты начала", new[] { nameof(EndAt) });
+                AvailableSeats = value;
+                _totalSeats = value;
             }
+        }
+        public int AvailableSeats { get; set; }
+
+        public bool TryReserveSeats(int count = 1)
+        {
+            var seats = AvailableSeats - count;
+
+            if (AvailableSeats == 0 || seats < 0)
+                return false;
+
+            AvailableSeats = seats;
+            return true;
+        }
+
+        public void ReleaseSeats(int count = 1)
+        {
+            AvailableSeats += count;
         }
     }
 }

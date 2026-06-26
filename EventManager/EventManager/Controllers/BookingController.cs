@@ -16,6 +16,8 @@ namespace EventManager.Controllers
         }
 
         [HttpPost("events/{id}/book")]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public IActionResult PostCreateBooking(int id)
         {
             var booking = _bookingService.CreateBookingAsync(id);

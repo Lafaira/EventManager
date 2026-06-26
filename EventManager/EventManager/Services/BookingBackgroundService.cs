@@ -1,17 +1,19 @@
-﻿using EventManager.Services.Interfaces;
+﻿using EventManager.Models;
+using EventManager.Services.Interfaces;
 
 namespace EventManager.Services
 {
     public class BookingBackgroundService : BackgroundService
     {
         private ILogger<BookingBackgroundService> _logger;
-        private IBookingQueue _queue;
         private IBookingService _bookingService;
-        public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingQueue queue, IBookingService bookingService)
+        private IEventService _eventService;
+        private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
+        public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingService bookingService, IEventService eventService)
         {
             _logger = logger;
-            _queue = queue;
             _bookingService = bookingService;
+            _eventService = eventService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -22,14 +24,10 @@ namespace EventManager.Services
             {
                 try
                 {
-                    if (_queue.TryDequeue(out var booking))
-                    {
-                       
-                        await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                    var pendingBookings = _bookingService.GetPending().ToList();
+                    var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
+                    await Task.WhenAll(tasks);
 
-                        booking.Status = Models.BookingStatus.Confirmed;
-
-                    }
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -39,9 +37,38 @@ namespace EventManager.Services
                 {
                     _logger.LogError(ex, "Ошибка при получении брони");
                 }
+               
 
                 await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
             }
+        }
+
+        private async Task ProcessBookingAsync(Booking booking, CancellationToken stoppingToken)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+
+                await _processingSemaphore.WaitAsync();
+
+                if (_eventService.CheckAvailability(booking.EventId))
+                {
+                    booking.Status = Models.BookingStatus.Rejected;
+                    _logger.LogWarning($"События {booking.EventId} для бронирования нет");
+                }
+                    
+                booking.Status = Models.BookingStatus.Confirmed;
+            }
+            catch(Exception ex)
+            {
+                booking.Status = Models.BookingStatus.Rejected;
+                _eventService.ReleaseSeats(booking.EventId);
+            }
+            finally
+            {
+                _processingSemaphore.Release();
+            }
+           
         }
     }
 }

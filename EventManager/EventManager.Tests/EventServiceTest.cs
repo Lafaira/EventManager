@@ -1,4 +1,5 @@
 ﻿using EventManager.Models;
+using EventManager.Models.Dto;
 using EventManager.Models.RequestModel;
 using EventManager.Services;
 using Microsoft.AspNetCore.Http;
@@ -50,17 +51,41 @@ namespace EventManager.Tests
         [Fact]
         public void GetAllEvents_ReturnCorrectResult()
         {
+            var eventItem = new Event()
+            {
+                Id = 5,
+                Title = "Foo",
+                Description = "Bar",
+                StartAt = new DateTime(2025, 06, 10),
+                EndAt = new DateTime(2026, 01, 01),
+                TotalSeats = 3
+
+            };
+
+            var resultEvent = _eventService.PostEvent(eventItem);
+
             var result = _eventService.GetAllEvents(pageInfo: new PageInfo());
 
-            Assert.Equal(2, result.EventArr.Count());
+            Assert.Equal(1, result.EventArr.Count());
         }
 
         [Fact]
         public void GetEvent_ReturnCorrectResult()
         {
-            int id = 1;
+            var eventItem = new Event()
+            {
+                Id = 5,
+                Title = "Foo",
+                Description = "Bar",
+                StartAt = new DateTime(2025, 06, 10),
+                EndAt = new DateTime(2026, 01, 01),
+                TotalSeats = 3
 
-            var result = _eventService.GetEvent(id);
+            };
+
+            var resultEvent = _eventService.PostEvent(eventItem);
+
+            var result = _eventService.GetEvent(eventItem.Id);
 
             Assert.NotNull(result);
         }
@@ -68,17 +93,31 @@ namespace EventManager.Tests
         [Fact]
         public void PutEvent_ReturnCorrectResult()
         {
-            var id = 1;
             var eventItem = new Event()
+            {
+                Id = 1,
+                Title = "Foo",
+                Description = "Bar",
+                StartAt = new DateTime(2025, 06, 10),
+                EndAt = new DateTime(2026, 01, 01),
+                TotalSeats = 3
+
+            };
+
+            var resultEvent = _eventService.PostEvent(eventItem);
+
+
+            var eventItem2 = new Event()
             {
                 Id = 1,
                 Title = "PutTitle",
                 Description = "Description",
                 StartAt = new DateTime(2026, 09, 11),
                 EndAt = new DateTime(2026, 10, 11),
+                TotalSeats = 2
             };
 
-            var result = _eventService.PutEvent(1, eventItem);
+            var result = _eventService.PutEvent(1, eventItem2);
 
             Assert.True(result);
         }
@@ -86,9 +125,20 @@ namespace EventManager.Tests
         [Fact]
         public void DeleteEvent_ReturnCorrectResult()
         {
-            var id = 1;
+            var eventItem = new Event()
+            {
+                Id = 5,
+                Title = "Foo",
+                Description = "Bar",
+                StartAt = new DateTime(2025, 06, 10),
+                EndAt = new DateTime(2026, 01, 01),
+                TotalSeats = 3
 
-            var result = _eventService.DeleteEvent(id);
+            };
+
+            var resultEvent = _eventService.PostEvent(eventItem);
+
+            var result = _eventService.DeleteEvent(eventItem.Id);
 
             Assert.True(result);
         }
@@ -97,6 +147,30 @@ namespace EventManager.Tests
         [MemberData(nameof(TestData))]
         public void Filter_GetAllEvents_ReturnCorrectResult(GetEventsQuery filter, PageInfo pageInfo, int expected)
         {
+            var eventItem = new Event()
+            {
+                Id = 1,
+                Title = "Title1",
+                Description = "Description",
+                StartAt = new DateTime(2026, 09, 11),
+                EndAt = new DateTime(2026, 10, 11),
+                TotalSeats = 3
+            };
+
+            _eventService.PostEvent(eventItem);
+
+            var eventItem2 = new Event()
+            {
+                Id = 2,
+                Title = "Title2",
+                Description = "Description",
+                StartAt = new DateTime(2027, 09, 11),
+                EndAt = new DateTime(2028, 09, 11),
+                TotalSeats = 3
+            };
+
+            _eventService.PostEvent(eventItem2);
+
 
             var result = _eventService.GetAllEvents(pageInfo, filter);
 
@@ -123,6 +197,7 @@ namespace EventManager.Tests
                 Description = "Description",
                 StartAt = new DateTime(2026, 09, 11),
                 EndAt = new DateTime(2026, 10, 11),
+                TotalSeats =2
             };
 
             Assert.Equal("Нет события с таким id", Assert.Throws<NotFoundException>(() => _eventService.PutEvent(id, eventItem)).Message);
@@ -137,8 +212,11 @@ namespace EventManager.Tests
                 Title = "Foo",
                 Description = "Bar",
                 StartAt = new DateTime(2025, 06, 10),
-                EndAt = new DateTime(2026, 01, 01)
+                EndAt = new DateTime(2026, 01, 01),
+                TotalSeats =2
             };
+
+            _eventService.PostEvent(eventItem);
 
             Assert.Equal("Событие с таким id уже существует", Assert.Throws<NotFoundException>(() => _eventService.PostEvent(eventItem)).Message);
         }
@@ -148,13 +226,14 @@ namespace EventManager.Tests
         {
             var id = 1;
 
-            var eventItem = new Event()
+            var eventItem = new CreateEvent()
             {
                 Id = 1,
                 Title = "PutTitle",
                 Description = "Description",
                 StartAt = new DateTime(2027, 09, 11),
                 EndAt = new DateTime(2026, 10, 11),
+                TotalSeats =2
             };
 
             var validContext = new ValidationContext(eventItem);
@@ -174,6 +253,7 @@ namespace EventManager.Tests
                 Description = "Description",
                 StartAt = new DateTime(2027, 09, 11),
                 EndAt = new DateTime(2026, 10, 11),
+                TotalSeats =2
             };
 
             using var factory = new WebApplicationFactory<Program>();

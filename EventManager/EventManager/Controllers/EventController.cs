@@ -1,4 +1,5 @@
 ﻿using EventManager.Models;
+using EventManager.Models.Dto;
 using EventManager.Models.RequestModel;
 using EventManager.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -36,9 +37,19 @@ namespace EventManager.Controllers
         }
 
         [HttpPost("events")]
-        public async Task<IActionResult> PostEvent([FromBody] Event eventItem)
+        public async Task<IActionResult> PostEvent([FromBody] CreateEvent dto)
         {
-            if (eventItem == null) throw new ValidationException("Пользователь не заполнил событие");
+            if (dto == null) throw new ValidationException("Пользователь не заполнил событие");
+
+            var eventItem = new Event()
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                StartAt = dto.StartAt,
+                EndAt = dto.EndAt,
+                TotalSeats = dto.TotalSeats,
+            };
 
             var saveEvent = _eventService.PostEvent(eventItem);
            
@@ -48,9 +59,19 @@ namespace EventManager.Controllers
         }
 
         [HttpPut("events/{id}")]
-        public async Task<IActionResult> PutEvent(int id, [FromBody] Event updatedEvent)
+        public async Task<IActionResult> PutEvent(int id, [FromBody] CreateEvent dto)
         {
-            if (updatedEvent == null) throw new ValidationException("Пользователь не заполнил событие");
+            if (dto == null) throw new ValidationException("Пользователь не заполнил событие");
+
+            var updatedEvent = new Event()
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                StartAt = dto.StartAt,
+                EndAt = dto.EndAt,
+                TotalSeats = dto.TotalSeats,
+            };
 
             _eventService.PutEvent(id, updatedEvent);
 

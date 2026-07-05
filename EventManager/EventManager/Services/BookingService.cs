@@ -5,28 +5,17 @@ namespace EventManager.Services
 {
     public class BookingService : IBookingService
     {
-        private List<Booking> _bookingList;
+        private List<Booking> _bookingList = new();
         IBookingQueue _queue;
         IEventService _eventService;
+        private readonly object _bookingLock = new();
 
         public BookingService(IBookingQueue queue, IEventService eventService)
         {
             _queue = queue;
             _eventService = eventService;
 
-            _bookingList = new()
-            {
-                new Booking()
-                {
-                    EventId = 1,
-                    Status = BookingStatus.Pending
-                },
-                new Booking()
-                {
-                    EventId = 2,
-                    Status = BookingStatus.Pending
-                }
-            };
+          
         }
         public Booking CreateBookingAsync(int eventId)
         {
@@ -39,7 +28,14 @@ namespace EventManager.Services
                 Status = BookingStatus.Pending
             };
 
-            _bookingList.Add(booking);
+            lock (_bookingLock)
+            {
+                if (!_eventService.CheckTryReserveSeats(eventId))
+                    throw new NoAvailableSeatsException("Закончились места на событие");
+
+                _bookingList.Add(booking);
+            }
+            
 
             _queue.Enqueue(booking);
 
@@ -59,6 +55,11 @@ namespace EventManager.Services
             }
 
             return result;
+        }
+
+        public IEnumerable<Booking> GetPending()
+        {  
+            return _bookingList.Where(x => x.Status == BookingStatus.Pending);
         }
 
     }

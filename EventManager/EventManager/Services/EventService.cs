@@ -9,28 +9,10 @@ namespace EventManager.Services
 {
     public class EventService : IEventService
     {
-        List<Event> _events;
+        List<Event> _events = new();
         public EventService()
         {
-            _events = new List<Event>()
-            {
-                new Event()
-                {
-                    Id =1,
-                    Title = "Title1",
-                    Description = "Description",
-                    StartAt = new DateTime(2026, 09, 11),
-                    EndAt = new DateTime(2026, 10, 11),
-                },
-                new Event()
-                {
-                    Id =2,
-                    Title = "Title2",
-                    Description = "Description",
-                    StartAt = new DateTime(2027, 09, 11),
-                    EndAt = new DateTime(2028, 09, 11),
-                },
-            };
+            
         }
 
         public PaginatedResult GetAllEvents(PageInfo pageInfo, GetEventsQuery? filterData = null)
@@ -100,6 +82,22 @@ namespace EventManager.Services
         public bool CheckAvailability(int id)
         {
             return _events.Any(x => x.Id == id);
+        }
+
+        public bool CheckTryReserveSeats(int eventId)
+        {
+            var eventItem = _events.Where(x => x.Id == eventId).FirstOrDefault();
+
+            if (!eventItem.TryReserveSeats())
+                return false;
+
+            return true;
+        }
+
+        public void ReleaseSeats(int id)
+        {
+            var eventItem = _events.Where(x => x.Id == id).FirstOrDefault();
+            eventItem.ReleaseSeats();
         }
     }
 }

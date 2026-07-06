@@ -1,9 +1,13 @@
-﻿using EventManager.Models;
+﻿using EventManager.DataAccess;
+using EventManager.Models;
 using EventManager.Models.Dto;
 using EventManager.Models.RequestModel;
 using EventManager.Services;
+using EventManager.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Json;
@@ -12,11 +16,23 @@ namespace EventManager.Tests
 {
     public class EventServiceTest
     {
-        private readonly EventService _eventService;
+        //private readonly EventService _eventService;
+        private readonly ServiceProvider _serviceProvider;
+        private readonly IServiceScope _scope;
+        private readonly IEventService _eventService;
 
         public EventServiceTest()
         {
-            _eventService = new EventService();
+            //_eventService = new EventService();
+            var dbName = Guid.NewGuid().ToString();
+            var services = new ServiceCollection();
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase(dbName));
+            services.AddScoped<IEventService, EventService>();
+
+            _serviceProvider = services.BuildServiceProvider();
+            _scope = _serviceProvider.CreateScope();
+            _eventService = _scope.ServiceProvider.GetRequiredService<IEventService>();
         }
 
         public static IEnumerable<object[]> TestData()
@@ -32,7 +48,7 @@ namespace EventManager.Tests
         }
 
         [Fact]
-        public void PostEvent_ReturnCorrectResult()
+        public async Task PostEvent_ReturnCorrectResult()
         {
             var eventItem = new Event()
             {
@@ -43,13 +59,13 @@ namespace EventManager.Tests
                 EndAt = new DateTime(2026, 01, 01)
             };
 
-            var result = _eventService.PostEvent(eventItem);
+            var result = await _eventService.PostEventAsync(eventItem);
 
             Assert.Equal(eventItem, result);
         }
 
         [Fact]
-        public void GetAllEvents_ReturnCorrectResult()
+        public async Task GetAllEvents_ReturnCorrectResult()
         {
             var eventItem = new Event()
             {
@@ -62,15 +78,15 @@ namespace EventManager.Tests
 
             };
 
-            var resultEvent = _eventService.PostEvent(eventItem);
+            var resultEvent = await _eventService.PostEventAsync(eventItem);
 
-            var result = _eventService.GetAllEvents(pageInfo: new PageInfo());
+            var result = await _eventService.GetAllEventsAsync(pageInfo: new PageInfo(), null);
 
             Assert.Equal(1, result.EventArr.Count());
         }
 
         [Fact]
-        public void GetEvent_ReturnCorrectResult()
+        public async Task GetEvent_ReturnCorrectResult()
         {
             var eventItem = new Event()
             {
@@ -83,15 +99,15 @@ namespace EventManager.Tests
 
             };
 
-            var resultEvent = _eventService.PostEvent(eventItem);
+            var resultEvent = await _eventService.PostEventAsync(eventItem);
 
-            var result = _eventService.GetEvent(eventItem.Id);
+            var result = await _eventService.GetEventAsync(eventItem.Id);
 
             Assert.NotNull(result);
         }
 
         [Fact]
-        public void PutEvent_ReturnCorrectResult()
+        public async Task PutEvent_ReturnCorrectResult()
         {
             var eventItem = new Event()
             {
@@ -104,7 +120,7 @@ namespace EventManager.Tests
 
             };
 
-            var resultEvent = _eventService.PostEvent(eventItem);
+            var resultEvent =await _eventService.PostEventAsync(eventItem);
 
 
             var eventItem2 = new Event()
@@ -117,13 +133,13 @@ namespace EventManager.Tests
                 TotalSeats = 2
             };
 
-            var result = _eventService.PutEvent(1, eventItem2);
+            var result = await _eventService.PutEventAsync(1, eventItem2);
 
             Assert.True(result);
         }
 
         [Fact]
-        public void DeleteEvent_ReturnCorrectResult()
+        public async Task DeleteEvent_ReturnCorrectResult()
         {
             var eventItem = new Event()
             {
@@ -136,16 +152,16 @@ namespace EventManager.Tests
 
             };
 
-            var resultEvent = _eventService.PostEvent(eventItem);
+            var resultEvent = await _eventService.PostEventAsync(eventItem);
 
-            var result = _eventService.DeleteEvent(eventItem.Id);
+            var result = await _eventService.DeleteEventAsync(eventItem.Id);
 
             Assert.True(result);
         }
 
         [Theory]
         [MemberData(nameof(TestData))]
-        public void Filter_GetAllEvents_ReturnCorrectResult(GetEventsQuery filter, PageInfo pageInfo, int expected)
+        public async Task Filter_GetAllEvents_ReturnCorrectResult(GetEventsQuery filter, PageInfo pageInfo, int expected)
         {
             var eventItem = new Event()
             {
@@ -157,7 +173,7 @@ namespace EventManager.Tests
                 TotalSeats = 3
             };
 
-            _eventService.PostEvent(eventItem);
+            await _eventService.PostEventAsync(eventItem);
 
             var eventItem2 = new Event()
             {
@@ -169,24 +185,26 @@ namespace EventManager.Tests
                 TotalSeats = 3
             };
 
-            _eventService.PostEvent(eventItem2);
+            await _eventService.PostEventAsync(eventItem2);
 
 
-            var result = _eventService.GetAllEvents(pageInfo, filter);
+            var result = await _eventService.GetAllEventsAsync(pageInfo, filter);
 
             Assert.Equal(expected, result.EventArr.Count());
         }
 
         [Fact]
-        public void GetEvent_ReturnThrowsNotFoundException()
+        public async Task GetEvent_ReturnThrowsNotFoundException()
         {
             int id = 5;
 
-            Assert.Equal("Нет события с таким id", Assert.Throws<NotFoundException>(() => _eventService.GetEvent(id)).Message);
+            var exception = await Assert.ThrowsAsync<NotFoundException>(async () => await _eventService.GetEventAsync(id));
+
+            Assert.Equal("Нет события с таким id", exception.Message);
         }
 
         [Fact]
-        public void PutEvent_ReturnThrowsNotFoundException()
+        public async Task PutEvent_ReturnThrowsNotFoundException()
         {
             var id = 5;
 
@@ -200,11 +218,14 @@ namespace EventManager.Tests
                 TotalSeats =2
             };
 
-            Assert.Equal("Нет события с таким id", Assert.Throws<NotFoundException>(() => _eventService.PutEvent(id, eventItem)).Message);
+            var exception = await Assert.ThrowsAsync<NotFoundException>(async () => await _eventService.PutEventAsync(id, eventItem));
+
+            Assert.Equal("Нет события с таким id", exception.Message);
+
         }
 
         [Fact]
-        public void PostEvent_ReturnThrowsNotFoundException()
+        public async Task PostEvent_ReturnThrowsNotFoundException()
         {
             var eventItem = new Event()
             {
@@ -216,9 +237,12 @@ namespace EventManager.Tests
                 TotalSeats =2
             };
 
-            _eventService.PostEvent(eventItem);
+            await _eventService.PostEventAsync(eventItem);
 
-            Assert.Equal("Событие с таким id уже существует", Assert.Throws<NotFoundException>(() => _eventService.PostEvent(eventItem)).Message);
+            var exception = await Assert.ThrowsAsync<NotFoundException>(async () => await _eventService.PostEventAsync(eventItem));
+
+            Assert.Equal("Событие с таким id уже существует", exception.Message);
+
         }
 
         [Fact]

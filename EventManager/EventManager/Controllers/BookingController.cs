@@ -18,9 +18,9 @@ namespace EventManager.Controllers
         [HttpPost("events/{id}/book")]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public IActionResult PostCreateBooking(int id)
+        public async Task<IActionResult> PostCreateBooking(int id, CancellationToken ct = default)
         {
-            var booking = _bookingService.CreateBookingAsync(id);
+            var booking = await _bookingService.CreateBookingAsync(id, ct);
 
             return AcceptedAtAction(
                 actionName: "GetBooking",
@@ -29,9 +29,9 @@ namespace EventManager.Controllers
         }
 
         [HttpGet("bookings/{id}")]
-        public IActionResult GetBooking(Guid id)
+        public async Task<IActionResult> GetBooking(Guid id, CancellationToken ct)
         {
-            var booking = _bookingService.GetBookingByIdAsync(id);
+            var booking = await _bookingService.GetBookingByIdAsync(id, ct);
 
             return Ok(booking);
         }

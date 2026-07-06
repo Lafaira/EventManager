@@ -1,6 +1,8 @@
+using EventManager.DataAccess;
 using EventManager.Middleware;
 using EventManager.Services;
 using EventManager.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,8 +22,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddSingleton<IEventService, EventService>();
-builder.Services.AddSingleton<IBookingService, BookingService>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<IBookingQueue, BookingQueue>();
 builder.Services.AddHostedService<BookingBackgroundService>();
 
@@ -29,6 +34,11 @@ var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

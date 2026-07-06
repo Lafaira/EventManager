@@ -4,8 +4,8 @@ namespace EventManager.Services.Interfaces
 {
     public interface IBookingService
     {
-        public Booking CreateBookingAsync(int eventId);
-        public Booking GetBookingByIdAsync(Guid bookingId);
+        public Task<Booking> CreateBookingAsync(int eventId, CancellationToken ct = default);
+        public Task<Booking> GetBookingByIdAsync(Guid bookingId, CancellationToken ct = default);
         public IEnumerable<Booking> GetPending();
     }
 }

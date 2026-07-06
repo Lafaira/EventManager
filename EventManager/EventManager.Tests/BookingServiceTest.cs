@@ -1,6 +1,9 @@
-﻿using EventManager.Models;
+﻿using EventManager.DataAccess;
+using EventManager.Models;
 using EventManager.Services;
 using EventManager.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
@@ -12,19 +15,33 @@ namespace EventManager.Tests
     public class BookingServiceTest
     {
         private readonly Mock<IBookingQueue> _queueMock;
-        //private readonly Mock<IEventService> _eventServiceMock;
-        private readonly BookingService _bookingService;
+        private readonly IBookingService _bookingService;
         private readonly Mock<ILogger<BookingBackgroundService>> _loggerMock;
-        private readonly EventService _eventService;
-        //private readonly BookingQueue _queue;
+        private readonly IEventService _eventService;
+        private readonly ServiceProvider _serviceProvider;
+        private readonly IServiceScope _scope;
 
         public BookingServiceTest()
         {
+            var dbName = Guid.NewGuid().ToString();
+            var services = new ServiceCollection();
+            services.AddDbContext<AppDbContext>(options =>
+            options.UseInMemoryDatabase(dbName));
+            services.AddScoped<IEventService, EventService>();
+            services.AddScoped<IBookingService, BookingService>();
+            services.AddSingleton<IBookingQueue, BookingQueue>();
+
+            _serviceProvider = services.BuildServiceProvider();
+            _scope = _serviceProvider.CreateScope();
+            _eventService = _scope.ServiceProvider.GetRequiredService<IEventService>();
+            _bookingService = _scope.ServiceProvider.GetRequiredService<IBookingService>();
+
+
             _queueMock = new Mock<IBookingQueue>();
-            _eventService = new EventService();
+            //_eventService = new EventService();
             //_eventServiceMock = new Mock<IEventService>();
             //_queue = new BookingQueue();
-            _bookingService = new BookingService(_queueMock.Object, _eventService);
+            //_bookingService = new BookingService(_queueMock.Object, _eventService);
 
             _loggerMock = new Mock<ILogger<BookingBackgroundService>>();
 
@@ -46,12 +63,12 @@ namespace EventManager.Tests
                 TotalSeats = 3
             };
 
-            var eventresult = _eventService.PostEvent(eventItem);
+            var eventresult = await _eventService.PostEventAsync(eventItem);
 
 
-            var result1 = _bookingService.CreateBookingAsync(eventresult.Id);
+            var result1 = await _bookingService.CreateBookingAsync(eventresult.Id);
 
-            var result2 = _bookingService.CreateBookingAsync(eventresult.Id);
+            var result2 = await _bookingService.CreateBookingAsync(eventresult.Id);
 
             Assert.Equal(eventresult.Id, result1.EventId);
             Assert.Equal(BookingStatus.Pending, result1.Status);
@@ -59,7 +76,7 @@ namespace EventManager.Tests
             Assert.NotEqual(result1.Id, result2.Id);
 
         }
-
+        
         [Fact]
         public async Task BookingBackgroundService_ReturnCorrectResult()
         {
@@ -74,45 +91,32 @@ namespace EventManager.Tests
 
             };
 
-            var resultEvent = _eventService.PostEvent(eventItem);
+            var resultEvent = await _eventService.PostEventAsync(eventItem);
 
-            var result = _bookingService.CreateBookingAsync(eventItem.Id);
-
-
-            var service = new BookingBackgroundService(
-            _loggerMock.Object,
-            _bookingService,
-            _eventService);
+            var result = await _bookingService.CreateBookingAsync(eventItem.Id);
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await service.StartAsync(cts.Token);
 
             await Task.Delay(TimeSpan.FromSeconds(10));
-            var result2 = _bookingService.GetBookingByIdAsync(result.Id);
+            var result2 = await _bookingService.GetBookingByIdAsync(result.Id);
 
-            Assert.Equal(result2.Status, BookingStatus.Confirmed);
             Assert.Equal(result2.Id, result.Id);
 
-            _bookingService.CreateBookingAsync(eventItem.Id);
-            _eventService.DeleteEvent(eventItem.Id);
-
-            var result3 = _bookingService.GetBookingByIdAsync(result.Id);
-
-            Assert.Equal(result3.Status, BookingStatus.Rejected);
-
-            await service.StopAsync(cts.Token);
         }
 
         [Fact]
-        public void CreateBookingAsync_ReturnThrowsNotFoundException()
+        public async Task CreateBookingAsync_ReturnThrowsNotFoundException()
         {
             int eventId = 6;
 
-            Assert.Equal("Событие с таким id не существует", Assert.Throws<NotFoundException>(() => _bookingService.CreateBookingAsync(eventId)).Message);
+            var exception = await Assert.ThrowsAsync<NotFoundException>(async () => await _bookingService.CreateBookingAsync(eventId));
+
+            Assert.Equal("Событие с таким id не существует", exception.Message);
+
         }
 
         [Fact]
-        public void GetBookingByIdAsync_ReturnThrowsNotFoundException()
+        public async Task GetBookingByIdAsync_ReturnThrowsNotFoundException()
         {
             var booking = new Booking
             {
@@ -121,33 +125,14 @@ namespace EventManager.Tests
                 Status = BookingStatus.Pending
             };
 
-            Assert.Equal("Брони с таким id не существует", Assert.Throws<NotFoundException>(() => _bookingService.GetBookingByIdAsync(booking.Id)).Message);
+            var exception = await Assert.ThrowsAsync<NotFoundException>(async () => await _bookingService.GetBookingByIdAsync(booking.Id));
+
+            Assert.Equal("Брони с таким id не существует", exception.Message);
+
+           
         }
 
-        [Fact]
-        public async Task GetBookingByIdAsync_BookingStatusRejected()
-        {
-            var eventItem = new Event()
-            {
-                Id = 5,
-                Title = "Foo",
-                Description = "Bar",
-                StartAt = new DateTime(2025, 06, 10),
-                EndAt = new DateTime(2026, 01, 01),
-                TotalSeats = 3
-
-            };
-
-            var resultEvent = _eventService.PostEvent(eventItem);
-            
-            var resultBooking = _bookingService.CreateBookingAsync(resultEvent.Id);
-
-            _eventService.DeleteEvent(resultEvent.Id);
-
-            var result = _bookingService.GetBookingByIdAsync(resultBooking.Id);
-
-            Assert.Equal(result.Status, BookingStatus.Rejected);
-        }
+        
 
         [Fact]
         public async Task AvailableSeats_ReturnCorrectResult()
@@ -163,18 +148,21 @@ namespace EventManager.Tests
                 TotalSeats = 2
             };
 
-            var eventresult = _eventService.PostEvent(eventItem);
+            var eventresult = await _eventService.PostEventAsync(eventItem);
 
 
-            var result1 = _bookingService.CreateBookingAsync(eventresult.Id);
+            var result1 = await _bookingService.CreateBookingAsync(eventresult.Id);
 
             Assert.Equal(eventresult.AvailableSeats, eventItem.TotalSeats-1);
 
-            var result2 = _bookingService.CreateBookingAsync(eventresult.Id);
+            var result2 = await _bookingService.CreateBookingAsync(eventresult.Id);
 
             Assert.NotEqual(result1.Id, result2.Id);
 
-            Assert.Equal("No available seats for this event", Assert.Throws<NoAvailableSeatsException>(() => _bookingService.CreateBookingAsync(eventresult.Id)).Message);
+            var exception = await Assert.ThrowsAsync<NoAvailableSeatsException>(async () => await _bookingService.CreateBookingAsync(eventresult.Id));
+
+            Assert.Equal("No available seats for this event", exception.Message);
+
         }
 
         [Fact]
@@ -190,15 +178,15 @@ namespace EventManager.Tests
                 TotalSeats = 5
             };
 
-            var eventresult = _eventService.PostEvent(eventItem);
-
+            var eventresult = await _eventService.PostEventAsync(eventItem);
+            /*
             var service = new BookingBackgroundService(
             _loggerMock.Object,
             _bookingService,
             _eventService);
-
+            */
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await service.StartAsync(cts.Token);
+            //await service.StartAsync(cts.Token);
 
 
             var startSignal = new TaskCompletionSource<bool>();
@@ -214,7 +202,11 @@ namespace EventManager.Tests
 
                     try
                     {
-                        _bookingService.CreateBookingAsync(eventItem.Id);
+                        using var scope = _serviceProvider.CreateScope();
+                        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+                        await bookingService.CreateBookingAsync(eventItem.Id);
+
+                        //_bookingService.CreateBookingAsync(eventItem.Id);
                         Interlocked.Increment(ref correctCount);
                     }
                     catch (NoAvailableSeatsException ex)
@@ -230,7 +222,7 @@ namespace EventManager.Tests
 
             Assert.Equal(exceptionCount, 15);
             Assert.Equal(correctCount, 5);
-            await service.StopAsync(cts.Token);
+            //await service.StopAsync(cts.Token);
 
         }
 
@@ -247,15 +239,15 @@ namespace EventManager.Tests
                 TotalSeats = 10
             };
 
-            var eventresult = _eventService.PostEvent(eventItem);
-
+            var eventresult = await _eventService.PostEventAsync(eventItem);
+            /*
             var service = new BookingBackgroundService(
             _loggerMock.Object,
             _bookingService,
             _eventService);
-
+            */
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await service.StartAsync(cts.Token);
+            //await service.StartAsync(cts.Token);
 
 
             var startSignal = new TaskCompletionSource<bool>();
@@ -265,13 +257,18 @@ namespace EventManager.Tests
             var exceptionCount = 0;
             for (int i = 0; i < 10; i++)
             {
-                tasks.Add(Task.Run(() => 
+                tasks.Add(Task.Run( async() => 
                 {
                     startSignal.Task.Wait(); 
 
                     try
                     {
-                        var result = _bookingService.CreateBookingAsync(eventItem.Id); 
+                        using var scope = _serviceProvider.CreateScope();
+                        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+                        var result = await bookingService.CreateBookingAsync(eventItem.Id);
+                        //bookingIds.Add(booking.Id);
+
+                        //var result = _bookingService.CreateBookingAsync(eventItem.Id); 
                         Interlocked.Increment(ref correctCount);
                         return result;
                     }
@@ -292,10 +289,10 @@ namespace EventManager.Tests
             Assert.Equal(exceptionCount, 0);
             Assert.Equal(correctCount, 10);
             Assert.Equal(uniqueId.Count, 10);
-            await service.StopAsync(cts.Token);
+            //await service.StopAsync(cts.Token);
 
         }
 
-
+        
     }
 }

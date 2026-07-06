@@ -19,39 +19,31 @@ namespace EventManager.Controllers
         }
 
         [HttpGet("events")]
-        public async Task<IActionResult> GetAllEvents([FromQuery] GetEventsQuery? filterData, [FromQuery] PageInfo pageInfo )
+        public async Task<IActionResult> GetAllEvents([FromQuery] GetEventsQuery? filterData, [FromQuery] PageInfo pageInfo, CancellationToken ct = default )
         {
-            var events = _eventService.GetAllEvents(pageInfo, filterData);
+            var events = await _eventService.GetAllEventsAsync(pageInfo, filterData, ct);
 
             return Ok(events);
         }
 
         [HttpGet("events/{id}")]
-        public async Task<IActionResult> GetEvent(int id)
+        public async Task<IActionResult> GetEvent(int id, CancellationToken ct = default)
         {
             Event? eventItem = null;
 
-            eventItem = _eventService.GetEvent(id);
+            eventItem = await _eventService.GetEventAsync(id, ct);
            
             return Ok(eventItem);
         }
 
         [HttpPost("events")]
-        public async Task<IActionResult> PostEvent([FromBody] CreateEvent dto)
+        public async Task<IActionResult> PostEvent([FromBody] CreateEvent dto, CancellationToken ct = default)
         {
             if (dto == null) throw new ValidationException("Пользователь не заполнил событие");
 
-            var eventItem = new Event()
-            {
-                Id = dto.Id,
-                Title = dto.Title,
-                Description = dto.Description,
-                StartAt = dto.StartAt,
-                EndAt = dto.EndAt,
-                TotalSeats = dto.TotalSeats,
-            };
+            var eventItem = new Event(dto.Id, dto.Title, dto.StartAt, dto.EndAt, dto.TotalSeats, dto.Description);
 
-            var saveEvent = _eventService.PostEvent(eventItem);
+            var saveEvent = await _eventService.PostEventAsync(eventItem, ct);
            
             return CreatedAtAction(nameof(GetEvent), 
             new { id = saveEvent.Id },
@@ -59,30 +51,22 @@ namespace EventManager.Controllers
         }
 
         [HttpPut("events/{id}")]
-        public async Task<IActionResult> PutEvent(int id, [FromBody] CreateEvent dto)
+        public async Task<IActionResult> PutEvent(int id, [FromBody] CreateEvent dto, CancellationToken ct =default)
         {
             if (dto == null) throw new ValidationException("Пользователь не заполнил событие");
 
-            var updatedEvent = new Event()
-            {
-                Id = dto.Id,
-                Title = dto.Title,
-                Description = dto.Description,
-                StartAt = dto.StartAt,
-                EndAt = dto.EndAt,
-                TotalSeats = dto.TotalSeats,
-            };
+            var updatedEvent = new Event(dto.Id, dto.Title, dto.StartAt, dto.EndAt, dto.TotalSeats, dto.Description);
 
-            _eventService.PutEvent(id, updatedEvent);
+            await _eventService.PutEventAsync(id, updatedEvent, ct);
 
 
             return Ok();
         }
 
         [HttpDelete("events/{id}")]
-        public async Task<IActionResult> DeleteEvent(int id)
+        public async Task<IActionResult> DeleteEvent(int id, CancellationToken ct = default)
         {
-            _eventService?.DeleteEvent(id);
+            await _eventService?.DeleteEventAsync(id, ct);
             
             return Ok();
         }

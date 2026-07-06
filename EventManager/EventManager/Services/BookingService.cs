@@ -1,55 +1,66 @@
-﻿using EventManager.Models;
+﻿using EventManager.DataAccess;
+using EventManager.Models;
 using EventManager.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventManager.Services
 {
     public class BookingService : IBookingService
     {
-        private List<Booking> _bookingList = new();
+        //private List<Booking> _bookingList = new();
         IBookingQueue _queue;
         IEventService _eventService;
         private readonly object _bookingLock = new();
+        private AppDbContext _context;
+        private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
-        public BookingService(IBookingQueue queue, IEventService eventService)
+        public BookingService(IBookingQueue queue, IEventService eventService, AppDbContext context)
         {
             _queue = queue;
             _eventService = eventService;
-
+            _context = context;
           
         }
-        public Booking CreateBookingAsync(int eventId)
+        public async Task<Booking> CreateBookingAsync(int eventId, CancellationToken ct = default)
         {
-            if (!_eventService.CheckAvailability(eventId))
-                throw new NotFoundException("Событие с таким id не существует");
-
-            var booking = new Booking()
+            await _semaphore.WaitAsync(ct);
+            try
             {
-                EventId = eventId,
-                Status = BookingStatus.Pending
-            };
+                var cheeckAvailability = await _eventService.CheckAvailabilityAsync(eventId, ct);
+                if (!cheeckAvailability)
+                    throw new NotFoundException("Событие с таким id не существует");
 
-            lock (_bookingLock)
-            {
-                if (!_eventService.CheckTryReserveSeats(eventId))
+                var booking = new Booking(eventId, BookingStatus.Pending);
+
+                var checkSeats = await _eventService.CheckTryReserveSeatsAsync(eventId, ct);
+                if (!checkSeats)
                     throw new NoAvailableSeatsException("Закончились места на событие");
 
-                _bookingList.Add(booking);
+                await _context.Bookings.AddAsync(booking, ct);
+
+                _queue.Enqueue(booking);
+
+                await _context.SaveChangesAsync(ct);
+
+                return booking;
             }
-            
-
-            _queue.Enqueue(booking);
-
-            return booking;
+            finally
+            {
+                _semaphore.Release();
+            }
+           
         }
 
-        public Booking GetBookingByIdAsync(Guid bookingId)
+        public async Task<Booking> GetBookingByIdAsync(Guid bookingId, CancellationToken ct = default)
         {
-            if (!_bookingList.Any(x => x.Id == bookingId))
+            if (! await _context.Bookings.AnyAsync(x => x.Id == bookingId, ct))
                 throw new NotFoundException("Брони с таким id не существует");
 
-            var result = _bookingList.Where(x => x.Id == bookingId).FirstOrDefault();
+            var result = await _context.Bookings.FirstOrDefaultAsync(x => x.Id == bookingId, ct);
 
-            if (!_eventService.CheckAvailability(result.EventId))
+            var cheeckAvailability = await _eventService.CheckAvailabilityAsync(result.EventId, ct);
+
+            if (!cheeckAvailability)
             {
                 result.Status = BookingStatus.Rejected;
             }
@@ -59,7 +70,7 @@ namespace EventManager.Services
 
         public IEnumerable<Booking> GetPending()
         {  
-            return _bookingList.Where(x => x.Status == BookingStatus.Pending);
+            return _context.Bookings.Where(x => x.Status == BookingStatus.Pending);
         }
 
     }

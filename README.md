@@ -34,7 +34,20 @@
 | 409 | Нет мест на событии | 
 | 500 | Внутренняя ошибка на микросервисе |
 
+## Работа с PostgreSQL
+Для запуска PostgreSQL необходимо запустить докер образ командой docker compose up -d 
+После выполнения команды PostgreSQL будет доступен на localhost:5433
 
+В appsettings.json необходимо прописать параметры подключения
+
+| --- | --- |
+| Host | localhost |
+| Port | 5433 |
+| Database | eventapi |
+|Username|postgres|
+|Password|postgres|
+
+Схема БД создаётся автоматически при запуске через EnsureCreated. А также используется InMemory-провайдера в тестах.
 ---
 
 > Для компиляции проекта используйте: dotnet build

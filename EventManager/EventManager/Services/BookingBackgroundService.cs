@@ -1,4 +1,5 @@
-﻿using EventManager.Models;
+﻿using EventManager.DataAccess;
+using EventManager.Models;
 using EventManager.Services.Interfaces;
 
 namespace EventManager.Services
@@ -6,14 +7,12 @@ namespace EventManager.Services
     public class BookingBackgroundService : BackgroundService
     {
         private ILogger<BookingBackgroundService> _logger;
-        private IBookingService _bookingService;
-        private IEventService _eventService;
-        private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
-        public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingService bookingService, IEventService eventService)
+        private readonly IServiceScopeFactory _scopeFactory;
+        public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
-            _bookingService = bookingService;
-            _eventService = eventService;
+
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,7 +23,14 @@ namespace EventManager.Services
             {
                 try
                 {
-                    var pendingBookings = _bookingService.GetPending().ToList();
+                    List<Booking> pendingBookings;
+
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var bookingService = scope.ServiceProvider.GetRequiredService<BookingService>();
+                        pendingBookings = bookingService.GetPending().ToList();
+                    }
+
                     var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
                     await Task.WhenAll(tasks);
 
@@ -45,28 +51,34 @@ namespace EventManager.Services
 
         private async Task ProcessBookingAsync(Booking booking, CancellationToken stoppingToken)
         {
+
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
 
-                await _processingSemaphore.WaitAsync();
-
-                if (_eventService.CheckAvailability(booking.EventId))
+                using (var scope = _scopeFactory.CreateScope())
                 {
-                    booking.Status = Models.BookingStatus.Rejected;
-                    _logger.LogWarning($"События {booking.EventId} для бронирования нет");
+                    var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
+
+                    if (await eventService.CheckAvailabilityAsync(booking.EventId, stoppingToken))
+                    {
+                        booking.Status = Models.BookingStatus.Rejected;
+                        _logger.LogWarning($"События {booking.EventId} для бронирования нет");
+                    }
                 }
-                    
+  
                 booking.Status = Models.BookingStatus.Confirmed;
             }
             catch(Exception ex)
             {
                 booking.Status = Models.BookingStatus.Rejected;
-                _eventService.ReleaseSeats(booking.EventId);
-            }
-            finally
-            {
-                _processingSemaphore.Release();
+
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
+                    await eventService.ReleaseSeatsAsync(booking.EventId, stoppingToken);
+                }
+                    
             }
            
         }

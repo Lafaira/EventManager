@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="EventManager.IntegrationTests/EventManager.IntegrationTests.csproj" Id="8d2391cb-24f1-45c7-9a7c-1d49d11372b0" />
   <Project Path="EventManager.Tests/EventManager.Tests.csproj" Id="1e83702f-ae36-44cf-8fc4-598c989e6ede" />
   <Project Path="EventManager/EventManager.csproj" />
 </Solution>

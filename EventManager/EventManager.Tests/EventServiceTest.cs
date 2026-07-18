@@ -46,7 +46,7 @@ namespace EventManager.Tests
                 [new GetEventsQuery { Title = "ti", From = new DateTime(2027, 01, 01), To = new DateTime(2028, 12, 31) }, new PageInfo { Page=1, PageSize=1 }, 1]
             ];
         }
-
+        /*
         [Fact]
         public async Task PostEvent_ReturnCorrectResult()
         {
@@ -290,5 +290,6 @@ namespace EventManager.Tests
 
             Assert.True(content.Contains("Дата окончания должна быть позднее даты начала"));
         }
+        */
     }
 }

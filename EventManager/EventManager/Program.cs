@@ -1,5 +1,7 @@
 using EventManager.DataAccess;
 using EventManager.Middleware;
+using EventManager.Repositories;
+using EventManager.Repositories.Interfaces;
 using EventManager.Services;
 using EventManager.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -29,15 +31,16 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<IBookingQueue, BookingQueue>();
 builder.Services.AddHostedService<BookingBackgroundService>();
+builder.Services.AddScoped<IBookingRepositories, BookingRepositories>();
+builder.Services.AddScoped<IEventRepositorie, EventRepositorie>();
 
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.Migrate();
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -12,21 +12,23 @@ namespace EventManager.Services
 {
     public class EventService : IEventService
     {
-        IEventRepositorie _repository;
-        public EventService(IEventRepositorie repository)
+        IEventRepository _repository;
+        public EventService(IEventRepository repository)
         {
            _repository = repository;
         }
 
         public async Task<PaginatedResult> GetAllEventsAsync(PageInfo pageInfo, GetEventsQuery? filterData = null, CancellationToken ct = default)
         {
-            //var events = _context.Events.AsQueryable();
             var events = await _repository.GetAllEventAsync();
 
             if(filterData != null)
             {
                 if (!string.IsNullOrWhiteSpace(filterData.Title))
-                    events = events.Where(x => x.Title.Contains(filterData.Title, StringComparison.OrdinalIgnoreCase));
+                {
+                    var searchPattern = $"%{filterData.Title}%";
+                    events = events.Where(x => EF.Functions.ILike(x.Title, searchPattern));
+                }
 
                 if (filterData.From.HasValue)
                     events = events.Where(x => x.StartAt >= filterData.From);

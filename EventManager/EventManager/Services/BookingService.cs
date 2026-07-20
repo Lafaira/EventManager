@@ -13,9 +13,9 @@ namespace EventManager.Services
         IEventService _eventService;
         private readonly object _bookingLock = new();
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
-        IBookingRepositories _repository;
+        IBookingRepository _repository;
 
-        public BookingService(IBookingQueue queue, IEventService eventService, IBookingRepositories repository)
+        public BookingService(IBookingQueue queue, IEventService eventService, IBookingRepository repository)
         {
             _queue = queue;
             _eventService = eventService;

@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventManager.Repositories
 {
-    public class EventRepositorie : IEventRepositorie
+    public class EventRepository : IEventRepository
     {
         AppDbContext _context;
-        public EventRepositorie(AppDbContext context)
+        public EventRepository(AppDbContext context)
         {
             _context = context;
         }

@@ -31,8 +31,8 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<IBookingQueue, BookingQueue>();
 builder.Services.AddHostedService<BookingBackgroundService>();
-builder.Services.AddScoped<IBookingRepositories, BookingRepositories>();
-builder.Services.AddScoped<IEventRepositorie, EventRepositorie>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 var app = builder.Build();
 

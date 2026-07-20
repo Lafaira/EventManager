@@ -2,7 +2,7 @@
 
 namespace EventManager.Repositories.Interfaces
 {
-    public interface IEventRepositorie
+    public interface IEventRepository
     {
         public Task<IQueryable<Event>> GetAllEventAsync();
         public Task<Event> GetEventAsync(int id, CancellationToken ct = default);

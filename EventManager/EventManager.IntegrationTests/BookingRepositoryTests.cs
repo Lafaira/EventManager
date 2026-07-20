@@ -2,6 +2,7 @@
 using EventManager.Models;
 using EventManager.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using Testcontainers.PostgreSql;
 
 namespace EventManager.IntegrationTests
@@ -22,7 +23,7 @@ namespace EventManager.IntegrationTests
         .Options;
 
             var context = new AppDbContext(options);
-            context.Database.EnsureCreated();
+            context.Database.Migrate();
             return context;
         }
         private async Task ResetDatabaseAsync()
@@ -50,7 +51,7 @@ namespace EventManager.IntegrationTests
             context.Events.Add(eventItem);
             await context.SaveChangesAsync();
 
-            var repository = new BookingRepositories(context);
+            var repository = new BookingRepository(context);
 
             var booking = new Booking(eventItem.Id, BookingStatus.Pending);
 
@@ -90,7 +91,7 @@ namespace EventManager.IntegrationTests
             await context.SaveChangesAsync();
 
 
-            var repository = new BookingRepositories(CreateContext());
+            var repository = new BookingRepository(CreateContext());
             var booking2 = await repository.GetBooking(booking.Id);
 
             Assert.Equal(booking.Id, booking2.Id);
@@ -119,7 +120,7 @@ namespace EventManager.IntegrationTests
             context.Bookings.Add(booking);
             await context.SaveChangesAsync();
 
-            var repository = new BookingRepositories(CreateContext());
+            var repository = new BookingRepository(CreateContext());
             var isExist = await repository.IsBookingExist(booking.Id);
 
             Assert.True(isExist);
@@ -148,13 +149,45 @@ namespace EventManager.IntegrationTests
             context.Bookings.AddRange(booking1, booking2);
             await context.SaveChangesAsync();
 
-            var repository = new BookingRepositories(CreateContext());
+            var repository = new BookingRepository(CreateContext());
             var pending = repository.GetPending();
 
             Assert.Equal(2, pending.Count());
         }
 
+        [Fact]
+        public async Task TablesAndFK()
+        {
+            await ResetDatabaseAsync();
+            await using var context = CreateContext();
 
+            var conn = context.Database.GetDbConnection();
+            if (conn.State != ConnectionState.Open)
+            {
+                await conn.OpenAsync();
+            }
+
+            using var checkTables = conn.CreateCommand();
+            checkTables.CommandText = @"
+            SELECT COUNT(*) 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name IN ('bookings', 'events');";
+
+            var tableCount = Convert.ToInt32(await checkTables.ExecuteScalarAsync());
+            Assert.Equal(2, tableCount); 
+
+            using var checkFk = conn.CreateCommand();
+            checkFk.CommandText = @"
+            SELECT COUNT(*) 
+            FROM information_schema.table_constraints 
+            WHERE table_schema = 'public' 
+            AND table_name = 'bookings' 
+            AND constraint_type = 'FOREIGN KEY';";
+
+            var fkCount = Convert.ToInt32(await checkFk.ExecuteScalarAsync());
+            Assert.Equal(1, fkCount);
+        }
 
     }
-}
+    }

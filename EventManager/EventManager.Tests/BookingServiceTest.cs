@@ -24,7 +24,7 @@ namespace EventManager.Tests
         private readonly IServiceScope _scope;
 
         private readonly Mock<IEventService> _eventServiceMock;
-        private readonly Mock<IBookingRepositories> _repositoryMock;
+        private readonly Mock<IBookingRepository> _repositoryMock;
         private readonly Mock<IBookingService> _bookingServiceMock;
 
         public BookingServiceTest()
@@ -48,7 +48,7 @@ namespace EventManager.Tests
             _loggerMock = new Mock<ILogger<BookingBackgroundService>>();
 
             _eventServiceMock = new Mock<IEventService>();
-            _repositoryMock = new Mock<IBookingRepositories>();
+            _repositoryMock = new Mock<IBookingRepository>();
             _bookingService = new BookingService(
                 _queueMock.Object,
             _eventServiceMock.Object,

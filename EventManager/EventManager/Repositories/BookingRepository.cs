@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventManager.Repositories
 {
-    public class BookingRepositories : IBookingRepositories
+    public class BookingRepository : IBookingRepository
     {
         AppDbContext _context;
-        public BookingRepositories(AppDbContext context) 
+        public BookingRepository(AppDbContext context) 
         {
             _context = context;
         }

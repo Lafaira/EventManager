@@ -2,7 +2,7 @@
 
 namespace EventManager.Repositories.Interfaces
 {
-    public interface IBookingRepositories
+    public interface IBookingRepository
     {
         public Task AddBookingAsync(Booking item, CancellationToken ct = default);
         public Task SaveChangesAsync(CancellationToken ct = default);

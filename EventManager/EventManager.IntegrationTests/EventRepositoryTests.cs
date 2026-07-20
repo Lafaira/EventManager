@@ -1,7 +1,10 @@
 ﻿using EventManager.DataAccess;
 using EventManager.Models;
+using EventManager.Models.RequestModel;
 using EventManager.Repositories;
+using EventManager.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -25,7 +28,8 @@ namespace EventManager.IntegrationTests
         .Options;
 
             var context = new AppDbContext(options);
-            context.Database.EnsureCreated();
+            //context.Database.EnsureDeleted();
+            context.Database.Migrate();
             return context;
         }
         private async Task ResetDatabaseAsync()
@@ -61,7 +65,7 @@ namespace EventManager.IntegrationTests
             context.Events.AddRange(eventItem1, eventItem2);
             await context.SaveChangesAsync();
 
-            var repositorie = new EventRepositorie(context);
+            var repositorie = new EventRepository(context);
 
             var items = await repositorie.GetAllEventAsync();
 
@@ -86,7 +90,7 @@ namespace EventManager.IntegrationTests
             context.Add(eventItem);
             await context.SaveChangesAsync();
 
-            var repositorie = new EventRepositorie(context);
+            var repositorie = new EventRepository(context);
 
             var item = await repositorie.GetEventAsync(eventItem.Id);
 
@@ -109,7 +113,7 @@ namespace EventManager.IntegrationTests
                 EndAt = new DateTime(2025, 01, 01, 0, 0, 0, DateTimeKind.Utc)
             };
 
-            var repository = new EventRepositorie(context);
+            var repository = new EventRepository(context);
             await repository.AddEventAsync(eventItem);
 
             await repository.SaveChangesAsync();
@@ -142,7 +146,7 @@ namespace EventManager.IntegrationTests
             context.Add(eventItem);
             await context.SaveChangesAsync();
 
-            var repositorie = new EventRepositorie(context);
+            var repositorie = new EventRepository(context);
 
             repositorie.Remove(eventItem);
 
@@ -173,11 +177,112 @@ namespace EventManager.IntegrationTests
             context.Add(eventItem);
             await context.SaveChangesAsync();
 
-            var repositorie = new EventRepositorie(context);
+            var repositorie = new EventRepository(context);
 
             var isCheak = await repositorie.CheckAvailabilityAsync(eventItem.Id);
 
             Assert.True(isCheak);
+        }
+
+        List<Event> _events = new List<Event>()
+        {
+            new Event()
+            {
+                Id = 5,
+                Title = "Event",
+                StartAt = new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc),
+                EndAt = new DateTime(2025, 01, 01, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Event()
+            {
+                Id = 1,
+                Title = "Event1",
+                StartAt = new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc),
+                EndAt = new DateTime(2025, 01, 01, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Event()
+            {
+                Id = 2,
+                Title = "Event2",
+                StartAt = new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc),
+                EndAt = new DateTime(2025, 01, 01, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Event()
+            {
+                Id = 3,
+                Title = "Event3",
+                StartAt = new DateTime(2023, 01, 01, 0, 0, 0, DateTimeKind.Utc),
+                EndAt = new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Event()
+            {
+                Id = 4,
+                Title = "Test",
+                StartAt = new DateTime(2023, 01, 01, 0, 0, 0, DateTimeKind.Utc),
+                EndAt = new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc)
+            },
+
+        };
+
+
+        [Fact]
+        public async Task GetAllEvents_WithTitleFilter()
+        {
+            await ResetDatabaseAsync();
+            await using var context = CreateContext();
+
+            context.Events.AddRange(_events);
+            await context.SaveChangesAsync();
+
+            var repository = new EventRepository(context);
+            var service = new EventService(repository);
+            var pageInfo = new PageInfo { Page = 1, PageSize = 10 };
+            var filter = new GetEventsQuery { Title = "Event" }; 
+
+            var result = await service.GetAllEventsAsync(pageInfo, filter);
+
+            Assert.Equal(4, result.CountEvent); 
+            
+        }
+
+        [Fact]
+        public async Task GetAllEvents_WithDataFilter()
+        {
+            await ResetDatabaseAsync();
+            await using var context = CreateContext();
+
+            context.Events.AddRange(_events);
+            await context.SaveChangesAsync();
+
+            var repository = new EventRepository(context);
+            var service = new EventService(repository);
+            var pageInfo = new PageInfo { Page = 1, PageSize = 10 };
+            var filter = new GetEventsQuery { To = new DateTime(2024, 09, 01, 0, 0, 0, DateTimeKind.Utc), From = new DateTime(2022, 01, 01, 0, 0, 0, DateTimeKind.Utc) };
+
+            var result = await service.GetAllEventsAsync(pageInfo, filter);
+
+            Assert.Equal(2, result.CountEvent);
+
+        }
+
+        [Fact]
+        public async Task GetAllEvents_Pagination()
+        {
+            await ResetDatabaseAsync();
+            await using var context = CreateContext();
+
+            context.Events.AddRange(_events);
+            await context.SaveChangesAsync();
+
+            var repository = new EventRepository(context);
+            var service = new EventService(repository);
+            var pageInfo = new PageInfo { Page = 1, PageSize = 2 };
+           
+
+            var result = await service.GetAllEventsAsync(pageInfo);
+
+            Assert.Equal(2, result.EventArr.Count());
+
         }
 
     }

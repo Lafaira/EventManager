@@ -27,7 +27,7 @@ namespace EventManager.Services
 
                     using (var scope = _scopeFactory.CreateScope())
                     {
-                        var bookingService = scope.ServiceProvider.GetRequiredService<BookingService>();
+                        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
                         pendingBookings = bookingService.GetPending().ToList();
                     }
 
@@ -58,7 +58,7 @@ namespace EventManager.Services
 
                 using (var scope = _scopeFactory.CreateScope())
                 {
-                    var eventService = scope.ServiceProvider.GetRequiredService<EventService>();
+                    var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
 
                     if (await eventService.CheckAvailabilityAsync(booking.EventId, stoppingToken))
                     {

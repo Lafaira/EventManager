@@ -3,8 +3,6 @@ using EventManager.Application.Interfaces;
 using EventManager.Application.Services;
 using EventManager.Domain.Models.RequestModel;
 using EventManager.Infrastructure.DataAccess;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;

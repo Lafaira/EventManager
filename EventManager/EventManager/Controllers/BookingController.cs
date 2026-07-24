@@ -1,6 +1,5 @@
-﻿using EventManager.Models;
-using EventManager.Services;
-using EventManager.Services.Interfaces;
+﻿using EventManager.Application.Dto;
+using EventManager.ApplicationInterfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -25,7 +24,15 @@ namespace EventManager.Controllers
             return AcceptedAtAction(
                 actionName: "GetBooking",
                 routeValues: new { id = booking.Id },
-                value: booking);
+                value: new BookingDto()
+                {
+                    Id = booking.Id,
+                    EventId = booking.EventId,
+                    CreatedAt = booking.CreatedAt,
+                    ProcessedAt = booking.ProcessedAt,
+                    Status = booking.Status,
+
+                });
         }
 
         [HttpGet("bookings/{id}")]

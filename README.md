@@ -56,6 +56,12 @@ dotnet ef migrations add NewMigration
 ```
 docker run
 ```
+
+Проект разделен на слои:
+- Domain — доменные сущности, доменные исключения. 
+- Application — сервисы, интерфейсы репозиториев, DTO. 
+- Infrastructure —  репозитории, DbContext, внешние клиенты. 
+- Presentation — контроллеры/Minimal API эндпоинты, HTTP-маппинг, регистрация зависимостей.
 ---
 
 > Для компиляции проекта используйте: dotnet build

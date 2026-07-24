@@ -5,7 +5,6 @@ using EventManager.Domain.Models.RequestModel;
 using EventManager.DomainModels;
 using System.Collections;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.EntityFrameworkCore; 
 
 namespace EventManager.Application.Services
 {
@@ -25,8 +24,7 @@ namespace EventManager.Application.Services
             {
                 if (!string.IsNullOrWhiteSpace(filterData.Title))
                 {
-                    var searchPattern = $"%{filterData.Title}%";
-                    events = events.Where(x => EF.Functions.ILike(x.Title, searchPattern));
+                    events = _repository.SearchStringData(filterData.Title, events);
                 }
 
                 if (filterData.From.HasValue)
@@ -36,13 +34,13 @@ namespace EventManager.Application.Services
                     events = events.Where(x => x.EndAt <= filterData.To);
             }
 
-            int countFilterEvent = await events.CountAsync(ct);
+            int countFilterEvent = events.Count();
             events = events.Skip((pageInfo.Page - 1) * pageInfo.PageSize).Take(pageInfo.PageSize);
 
             return new PaginatedResult()
             {
                 CountEvent= countFilterEvent,
-                EventArr = await events.ToArrayAsync(ct), 
+                EventArr = events.ToArray(),
                 NumberCurrentPage = pageInfo.Page,
                 CountEventInPage = events.Count()
             };

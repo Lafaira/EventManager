@@ -12,5 +12,6 @@ namespace EventManager.Application.Interfaces
         public Task SaveChangesAsync(CancellationToken ct = default);
         public void Remove(Event eventItem);
         public Task<bool> CheckAvailabilityAsync(int id, CancellationToken ct = default);
+        public IQueryable<Event> SearchStringData(string filterString, IQueryable<Event> events);
     }
 }

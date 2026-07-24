@@ -4,6 +4,7 @@ using EventManager.Application.Interfaces;
 using EventManager.Domain.Models;
 using EventManager.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EventManager.Infrastructure.Repositories
 {
@@ -25,5 +26,10 @@ namespace EventManager.Infrastructure.Repositories
         public void Remove(Event eventItem) => _context.Events.Remove(eventItem);
 
         public async Task<bool> CheckAvailabilityAsync(int id, CancellationToken ct = default) => await _context.Events.AnyAsync(x => x.Id == id, ct);
+        public IQueryable<Event> SearchStringData(string filterString, IQueryable<Event> events)
+        {
+            var searchPattern = $"%{filterString}%";
+            return events.Where(x => EF.Functions.ILike(x.Title, searchPattern));
+        }
     }
 }

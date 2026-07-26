@@ -1,8 +1,8 @@
-﻿using EventManager.DataAccess;
-using EventManager.Models;
-using EventManager.Models.RequestModel;
-using EventManager.Repositories;
-using EventManager.Services;
+﻿using EventManager.Application.Services;
+using EventManager.Domain.Models;
+using EventManager.Domain.Models.RequestModel;
+using EventManager.Infrastructure.DataAccess;
+using EventManager.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;

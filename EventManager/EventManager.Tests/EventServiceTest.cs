@@ -1,11 +1,8 @@
-﻿using EventManager.DataAccess;
-using EventManager.Models;
-using EventManager.Models.Dto;
-using EventManager.Models.RequestModel;
-using EventManager.Services;
-using EventManager.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
+﻿
+using EventManager.Application.Interfaces;
+using EventManager.Application.Services;
+using EventManager.Domain.Models.RequestModel;
+using EventManager.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;

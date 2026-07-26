@@ -1,7 +1,7 @@
-﻿using EventManager.Models;
-using EventManager.Models.Dto;
-using EventManager.Models.RequestModel;
-using EventManager.Services.Interfaces;
+﻿using EventManager.Application.Interfaces;
+using EventManager.Application.Models.Dto;
+using EventManager.Domain.Models;
+using EventManager.Domain.Models.RequestModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.ComponentModel.DataAnnotations;

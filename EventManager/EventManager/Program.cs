@@ -1,11 +1,13 @@
-using EventManager.DataAccess;
+using EventManager.Application.Interfaces;
+using EventManager.Application.Services;
+using EventManager.ApplicationInterfaces;
+using EventManager.Infrastructure.DataAccess;
+using EventManager.Infrastructure.Repositories;
+using EventManager.Infrastructure.Services;
 using EventManager.Middleware;
-using EventManager.Repositories;
-using EventManager.Repositories.Interfaces;
-using EventManager.Services;
-using EventManager.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+
 
 var builder = WebApplication.CreateBuilder(args);
 

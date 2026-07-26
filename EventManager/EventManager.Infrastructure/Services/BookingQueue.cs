@@ -1,0 +1,22 @@
+﻿
+using EventManager.Application.Interfaces;
+using EventManager.Domain.Models;
+using System.Collections.Concurrent;
+
+namespace EventManager.Infrastructure.Services
+{
+    public class BookingQueue : IBookingQueue
+    {
+        private readonly ConcurrentQueue<Booking> _queue = new();
+
+        public void Enqueue(Booking task)
+        {
+            _queue.Enqueue(task);
+        }
+
+        public bool TryDequeue(out Booking task)
+        {
+            return _queue.TryDequeue(out task);
+        }
+    }
+}

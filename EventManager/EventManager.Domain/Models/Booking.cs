@@ -8,17 +8,28 @@
         public DateTime CreatedAt { get; set; } 
         public DateTime? ProcessedAt { get; set; }
         public Event? Event { get; private set; }
+        public Guid UserId { get; set; }
+        public User User { get; set; }
 
         public Booking()
         {
 
         }
-        public Booking(int eventId, BookingStatus status)
+        public Booking(int eventId, BookingStatus status, Guid userId)
         {
             Id = Guid.NewGuid();
             EventId = eventId;
             Status = status;
             CreatedAt = DateTime.UtcNow;
+            UserId = userId;
+        }
+
+        public void Cancelled()
+        {
+            if (Status != BookingStatus.Cancelled)
+                Status = BookingStatus.Cancelled;
+            else
+                throw new Exception("");
         }
     }
 
@@ -26,6 +37,7 @@
     {
         Pending,
         Confirmed,
-        Rejected
+        Rejected,
+        Cancelled
     }
 }

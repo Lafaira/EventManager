@@ -11,5 +11,6 @@ namespace EventManager.Application.Interfaces
         public Task<bool> IsBookingExist(Guid bookingId, CancellationToken ct = default);
         public Task<Booking> GetBooking(Guid bookingId, CancellationToken ct = default);
         public IEnumerable<Booking> GetPending();
+        public Task<int> GetBookingCount(Guid userId);
     }
 }

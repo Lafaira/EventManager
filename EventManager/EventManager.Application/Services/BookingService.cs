@@ -21,7 +21,7 @@ namespace EventManager.Application.Services
             _eventService = eventService;
             _repository = repository;
         }
-        public async Task<Booking> CreateBookingAsync(int eventId, CancellationToken ct = default)
+        public async Task<Booking> CreateBookingAsync(int eventId, Guid userId, CancellationToken ct = default)
         {
             await _semaphore.WaitAsync(ct);
             try
@@ -30,11 +30,21 @@ namespace EventManager.Application.Services
                 if (!cheeckAvailability)
                     throw new NotFoundException("Событие с таким id не существует");
 
-                var booking = new Booking(eventId, BookingStatus.Pending);
+                var booking = new Booking(eventId, BookingStatus.Pending, userId);
 
                 var checkSeats = await _eventService.CheckTryReserveSeatsAsync(eventId, ct);
                 if (!checkSeats)
                     throw new NoAvailableSeatsException("Закончились места на событие");
+
+                var eventItem = await _eventService.GetEventAsync(eventId, ct);
+
+                if (eventItem.StartAt < booking.CreatedAt)
+                    throw new EventHasEndedException("Нельзя забронировать событие, которое уже началось");
+
+                var userBooking = await _repository.GetBookingCount(userId);
+
+                if(userBooking >10)
+                    throw new BookingLimitExceededException("У пользователя больше 10 броней");
 
                 await _repository.AddBookingAsync(booking, ct);
 
@@ -84,6 +94,33 @@ namespace EventManager.Application.Services
 
             await _repository.SaveChangesAsync(ct);
         }
+
+        public async Task<bool> CancelledBooking(Guid id, Guid userId, RolesEnum role)
+        {
+            var booking = await _repository.GetBooking(id);
+
+            if(booking.Status != BookingStatus.Cancelled)
+            {
+                if (role == RolesEnum.Admin || booking.UserId == userId)
+                {
+                    booking.Status = BookingStatus.Cancelled;
+                    await _repository.SaveChangesAsync();
+
+                    return true;
+                }
+                else
+                    throw new NoRightsException("Нет прав на отмену события");
+
+            }
+            else
+            {
+                new Exception("Событие уже было отменено");
+            }
+
+            return false;
+
+        }
+
 
     }
 }

@@ -9,6 +9,7 @@ using System.Text;
 
 namespace EventManager.Controllers
 {
+    [Route("auth/")]
     [ApiController]
     public class AuthController : Controller
     {

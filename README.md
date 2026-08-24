@@ -13,8 +13,8 @@
 | DELETE | /events/{id} | Удалить событие|  |
 | POST | events/{id}/book | Создает брониронь на событие по id события | |
 | GET | bookings/{id} | Получает информацию о брони по ее id | |
-| POST | login | Позволяет получить jwt токен для зарегестрированного пользователя |`{"login": "string", "password": "string"}` |
-| POST | register | Регестрирует пользователя | `{"login": "string", "password": "string", "roles": 0}` |
+| POST | auth/login | Позволяет получить jwt токен для зарегестрированного пользователя |`{"login": "string", "password": "string"}` |
+| POST | auth/register | Регестрирует пользователя | `{"login": "string", "password": "string", "roles": 0}` |
 
 
 ## Фильтрация данных

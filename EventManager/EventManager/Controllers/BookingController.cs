@@ -47,23 +47,15 @@ namespace EventManager.Controllers
         }
 
         [Authorize(Roles = "Admin,User")]
-        [AllowAnonymous]
-        [HttpGet("bookings")]
-        public async Task<IActionResult> GetBooking( CancellationToken ct)
+        [HttpGet("bookings/{id}")]
+        public async Task<IActionResult> GetBooking(Guid id, CancellationToken ct)
         {
-            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!Guid.TryParse(id, out Guid userId))
-            {
-                return BadRequest("Не корректный id пользователя");
-            }
-            var booking = await _bookingService.GetBookingByIdAsync(userId, ct);
+            var booking = await _bookingService.GetBookingByIdAsync(id, ct);
 
             return Ok(booking);
         }
 
         [Authorize(Roles = "Admin,User")]
-        [AllowAnonymous]
         [HttpDelete("bookings/{bookingId}")]
         public async Task<IActionResult> CancelledBooking(Guid bookingId, CancellationToken ct)
         {
@@ -72,8 +64,11 @@ namespace EventManager.Controllers
 
             var userRole = Domain.Models.RolesEnum.User;
 
-            if (useridString == RolesEnum.Admin.ToString())
-                userRole = RolesEnum.Admin;
+            if (!string.IsNullOrEmpty(userRoleString) &&
+            Enum.TryParse(userRoleString, ignoreCase: true, out RolesEnum parsedRole))
+            {
+                userRole = parsedRole;
+            }
 
 
             if (!Guid.TryParse(useridString, out Guid userId))

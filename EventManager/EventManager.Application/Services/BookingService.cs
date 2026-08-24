@@ -43,14 +43,14 @@ namespace EventManager.Application.Services
 
                 var userBooking = await _repository.GetBookingCount(userId);
 
-                if(userBooking >10)
+                if(userBooking >=10)
                     throw new BookingLimitExceededException("У пользователя больше 10 броней");
 
                 await _repository.AddBookingAsync(booking, ct);
 
-                _queue.Enqueue(booking);
-
                 await _repository.SaveChangesAsync(ct);
+
+                _queue.Enqueue(booking);
 
                 return booking;
             }

@@ -2,6 +2,7 @@
 using EventManager.Application.Models.Dto;
 using EventManager.Domain.Models;
 using EventManager.Domain.Models.RequestModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.ComponentModel.DataAnnotations;
@@ -36,6 +37,7 @@ namespace EventManager.Controllers
             return Ok(eventItem);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("events")]
         public async Task<IActionResult> PostEvent([FromBody] CreateEvent dto, CancellationToken ct = default)
         {
@@ -50,6 +52,7 @@ namespace EventManager.Controllers
             saveEvent);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("events/{id}")]
         public async Task<IActionResult> PutEvent(int id, [FromBody] CreateEvent dto, CancellationToken ct =default)
         {
@@ -63,6 +66,7 @@ namespace EventManager.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("events/{id}")]
         public async Task<IActionResult> DeleteEvent(int id, CancellationToken ct = default)
         {

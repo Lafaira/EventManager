@@ -31,5 +31,6 @@ namespace EventManager.Infrastructure.Repositories
             var searchPattern = $"%{filterString}%";
             return events.Where(x => EF.Functions.ILike(x.Title, searchPattern));
         }
+
     }
 }

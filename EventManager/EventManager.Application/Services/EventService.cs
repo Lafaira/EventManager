@@ -101,5 +101,7 @@ namespace EventManager.Application.Services
             var eventItem = await _repository.GetEventAsync(id, ct);
             eventItem.ReleaseSeats();
         }
+
+
     }
 }

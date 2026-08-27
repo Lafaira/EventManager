@@ -35,7 +35,7 @@ namespace EventManager.Infrastructure.Services
                         pendingBookings = bookingService.GetPending().ToList();
                     }
 
-                    var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
+                    var tasks = pendingBookings.Select(async booking =>  await ProcessBookingAsync(booking, stoppingToken));
                     await Task.WhenAll(tasks);
 
                 }

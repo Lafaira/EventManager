@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventManager.Domain\EventManager.Domain.csproj" />
+	<FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
   </ItemGroup>
 
 </Project>

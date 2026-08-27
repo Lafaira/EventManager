@@ -3,6 +3,7 @@
 using EventManager.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection.Emit;
 
 namespace EventManager.Infrastructure.DataAccess.Configurations
 {
@@ -18,7 +19,7 @@ namespace EventManager.Infrastructure.DataAccess.Configurations
             builder.Property(e => e.EventId).HasColumnName("event_id").IsRequired();
             builder.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired();
             builder.Property(e => e.ProcessedAt).HasColumnName("processed_at");
-
+            builder.HasOne(e => e.User).WithMany(e => e.Bookings).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

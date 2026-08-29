@@ -1,6 +1,0 @@
-@EventManager_HostAddress = http://localhost:5063
-
-GET {{EventManager_HostAddress}}/
-Accept: application/json
-
-###

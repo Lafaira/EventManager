@@ -51,7 +51,9 @@
 
 Схема БД создаётся через миграции. Для создании новой миграции необходимо использовать
 ```
-dotnet ef migrations add NewMigration
+Add-Migration InitialCreate -Project User.Infrastructure -StartupProject User.Api
+Add-Migration InitialCreate -Project Event.Infrastructure -StartupProject Event.Api
+Add-Migration InitialCreate -Project Booking.Infrastructure -StartupProject Booking.Api
 ```
 Последняя созданная миграция автоматически применяется при запуске приложения. 
 Интеграционные тесты используют Testcontainers. Для их запуска необходимо запустить Docker образ. Для запуска образа используйте
@@ -69,4 +71,6 @@ docker run
 > Для компиляции проекта используйте: dotnet build
 > Для запуска проекта используйте: dotnet run
 > Для запуска тестов: dotnet test
-> Обратитесь к документации по пути http://localhost:5063/swagger/index.html
+> Обратитесь к документации UserService по пути https://localhost:7165/swagger/index.html
+> Обратитесь к документации EventService по пути https://localhost:7098/swagger/index.html
+> Обратитесь к документации BookingService по пути https://localhost:7187/swagger/index.html

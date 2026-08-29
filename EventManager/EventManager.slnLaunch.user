@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "Новый профиль",
+    "Projects": [
+      {
+        "Path": "Booking.Api\\Booking.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Event.Api\\Event.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "User.Api\\User.Api.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

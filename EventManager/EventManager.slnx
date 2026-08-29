@@ -18,10 +18,4 @@
     <Project Path="User.Infrastructure/User.Infrastructure.csproj" Id="e484ff06-3665-4515-ad7e-76f6abf6186f" />
   </Folder>
   <Project Path="Contracts/Contracts.csproj" Id="1784d127-cf09-4130-9bb6-3b897aaf419b" />
-  <Project Path="EventManager.Application/EventManager.Application.csproj" Id="8271a59a-088f-446c-a717-eacfe446e27c" />
-  <Project Path="EventManager.Domain/EventManager.Domain.csproj" Id="758dc093-eb7c-4e85-9511-8c75c548008a" />
-  <Project Path="EventManager.Infrastructure/EventManager.Infrastructure.csproj" Id="a7362b8f-4837-4f73-846d-1a8949959598" />
-  <Project Path="EventManager.IntegrationTests/EventManager.IntegrationTests.csproj" />
-  <Project Path="EventManager.Tests/EventManager.Tests.csproj" Id="1e83702f-ae36-44cf-8fc4-598c989e6ede" />
-  <Project Path="EventManager/EventManager.csproj" />
 </Solution>

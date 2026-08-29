@@ -1,6 +1,16 @@
 # Event Manager
 
-Микросервис REST API предназначенный для работы с событиями.
+Проект содержит 3 микросервиса: UserService, EventService, BookingService. Для связи между EventService и BookingService используется Kafka
+
+> UserService - предназначен для регистрации пользователя и входа. Он предоставляет jwt токен для авторизации в других микросервисах
+
+
+> EventService - является REST API предназначенный для работы с событиями
+
+
+> BookingService - предназначен для работы бронирования пользователями мест на событиях
+
+> BookingService публикует сообщение, в формате:  {"BookingId":"a74bc171-9c09-4b6b-b03b-8abd90892d3a","EventId":1,"UserId":"2dd0d4df-e0da-45c0-a60d-71ab4843bbe2","SeatsCount":1,"ConfirmedAt":"2026-08-29T18:46:05.7785601Z"} в топик booking-confirmed. После получения сообщения EventService проводит ряд проверок брони и если все корректно уменьшает количество мест у события
 
 ## Возможности
 
@@ -38,7 +48,12 @@
 
 ## Работа с PostgreSQL
 Для запуска PostgreSQL необходимо запустить докер образ командой docker compose up -d 
-После выполнения команды PostgreSQL будет доступен на localhost:5433
+После выполнения команды PostgreSQL поднимутся 3 базы данных будет доступеные по следующим адресам:
+| Микросервис | Адресс |
+| --- | --- |
+| UserService | localhost:54320 |
+| EventService | localhost:5433 |
+| BookingService | localhost:5434 |
 
 В appsettings.json необходимо прописать параметры подключения
 

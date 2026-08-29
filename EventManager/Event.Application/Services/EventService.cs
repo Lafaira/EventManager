@@ -92,6 +92,8 @@ namespace EventService.Event.Application.Services
             if (!eventItem.TryReserveSeats())
                 return false;
 
+            await _repository.SaveChangesAsync(ct);
+
             return true;
         }
 

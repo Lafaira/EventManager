@@ -1,8 +1,21 @@
 <Solution>
-  <Project Path="EventManager.Application/EventManager.Application.csproj" Id="8271a59a-088f-446c-a717-eacfe446e27c" />
-  <Project Path="EventManager.Domain/EventManager.Domain.csproj" Id="758dc093-eb7c-4e85-9511-8c75c548008a" />
-  <Project Path="EventManager.Infrastructure/EventManager.Infrastructure.csproj" Id="a7362b8f-4837-4f73-846d-1a8949959598" />
-  <Project Path="EventManager.IntegrationTests/EventManager.IntegrationTests.csproj" />
-  <Project Path="EventManager.Tests/EventManager.Tests.csproj" Id="1e83702f-ae36-44cf-8fc4-598c989e6ede" />
-  <Project Path="EventManager/EventManager.csproj" />
+  <Folder Name="/BookingService/">
+    <Project Path="Booking.Api/Booking.Api.csproj" Id="fbd6bb93-e2e0-4bed-a42d-3da3055c9813" />
+    <Project Path="Booking.Application/Booking.Application.csproj" Id="3088700f-bec2-4895-bbe3-d7abb936eb97" />
+    <Project Path="Booking.Domain/Booking.Domain.csproj" Id="9fcd19b5-1103-4bd2-83ed-abcb6a38c0a3" />
+    <Project Path="Booking.Infrastructure/Booking.Infrastructure.csproj" Id="f6dedd18-ed53-4912-a7a2-37ca50e3350f" />
+  </Folder>
+  <Folder Name="/EventService/">
+    <Project Path="Event.Api/Event.Api.csproj" Id="47caeaf0-9238-4af5-a5c2-c85d0b8cbc82" />
+    <Project Path="Event.Application/Event.Application.csproj" Id="fb28c143-43e9-44f6-b824-e7bb0eaa918c" />
+    <Project Path="Event.Domain/Event.Domain.csproj" Id="69941f09-a09f-4aec-aa53-5b2ac787ced7" />
+    <Project Path="Event.Infrastructure/Event.Infrastructure.csproj" Id="ecc5763b-3c72-4401-b811-bff91e43d2f5" />
+  </Folder>
+  <Folder Name="/UserService/">
+    <Project Path="User.Api/User.Api.csproj" Id="21506223-cf46-4505-ac47-4e2a900cb060" />
+    <Project Path="User.Application/User.Application.csproj" Id="76e94046-3a26-442a-be8b-d08c3961297d" />
+    <Project Path="User.Domain/User.Domain.csproj" Id="8f08199c-bc99-46cb-9a50-fef64533c333" />
+    <Project Path="User.Infrastructure/User.Infrastructure.csproj" Id="e484ff06-3665-4515-ad7e-76f6abf6186f" />
+  </Folder>
+  <Project Path="Contracts/Contracts.csproj" Id="1784d127-cf09-4130-9bb6-3b897aaf419b" />
 </Solution>

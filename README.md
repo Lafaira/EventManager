@@ -1,6 +1,6 @@
 # Event Manager
 
-Проект содержит 3 микросервиса: UserService, EventService, BookingService. Для связи между EventService и BookingService используется Kafka
+Проект содержит 3 микросервиса: UserService, EventService, BookingService. Для связи между EventService и BookingService используется Kafka. Для кэширования используется Redis
 
 > UserService - предназначен для регистрации пользователя и входа. Он предоставляет jwt токен для авторизации в других микросервисах
 
@@ -22,6 +22,7 @@
 | PUT | /events/{id} | Изменение данных события| `{"id": 0,"title": "string","description": "string","startAt": "2026-06-25T18:46:28.719Z","endAt": "2026-06-25T18:46:28.719Z","totalSeats": 2147483647}` |
 | DELETE | /events/{id} | Удалить событие|  |
 | POST | events/{id}/book | Создает брониронь на событие по id события | |
+| GET | /events/top | Получить топ 10 событий | |
 | GET | bookings/{id} | Получает информацию о брони по ее id | |
 | POST | auth/login | Позволяет получить jwt токен для зарегестрированного пользователя |`{"login": "string", "password": "string"}` |
 | POST | auth/register | Регестрирует пользователя | `{"login": "string", "password": "string", "roles": 0}` |
@@ -37,6 +38,13 @@
 |page| Страница для которой запрашиваются события| 1 |
 |pageSize| Сколько событий отображается на странице | 10 |
 
+## Redis
+Кэширует события по id и кэширует топ 10 событий
+
+| CacheKey | Описание |
+| --- | --- |
+| event:{id} | Кеширует событие по id. При бронировании использует стратегию инвалидации|
+| events:top10 | Кэширует топ 10 событий. С TTL 5 минут |
 ## Ответы в случае ошибок
 
 | StatusCose | Описание |

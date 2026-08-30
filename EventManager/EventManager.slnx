@@ -10,6 +10,7 @@
     <Project Path="Event.Application/Event.Application.csproj" Id="fb28c143-43e9-44f6-b824-e7bb0eaa918c" />
     <Project Path="Event.Domain/Event.Domain.csproj" Id="69941f09-a09f-4aec-aa53-5b2ac787ced7" />
     <Project Path="Event.Infrastructure/Event.Infrastructure.csproj" Id="ecc5763b-3c72-4401-b811-bff91e43d2f5" />
+    <Project Path="EventService.Test/EventService.Test.csproj" Id="d51ecc9d-dfd0-487a-9542-b0e0a5c6622b" />
   </Folder>
   <Folder Name="/UserService/">
     <Project Path="User.Api/User.Api.csproj" Id="21506223-cf46-4505-ac47-4e2a900cb060" />

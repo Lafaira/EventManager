@@ -13,5 +13,6 @@ namespace EventService.Event.Application.Interfaces
         public Task<bool> CheckAvailabilityAsync(int id, CancellationToken ct = default);
         public Task<bool> CheckTryReserveSeatsAsync(int eventId, CancellationToken ct = default);
         public Task ReleaseSeatsAsync(int id, CancellationToken ct = default);
+        public Task<List<Domain.Models.Event>?> GetTop10();
     }
 }

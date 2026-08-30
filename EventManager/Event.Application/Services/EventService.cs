@@ -77,6 +77,8 @@ namespace EventService.Event.Application.Services
 
             await _repository.SaveChangesAsync(ct);
 
+            await _redis.RemoveCacheEventById(id);
+
             return true;
         }
 
@@ -86,6 +88,8 @@ namespace EventService.Event.Application.Services
             var eventItem = await _repository.GetEventAsync(id, ct) ?? throw new NotFoundException("Нет события с таким id");
             _repository.Remove(eventItem);
             await _repository.SaveChangesAsync(ct);
+
+            await _redis.RemoveCacheEventById(id);
             return true;
         }
 

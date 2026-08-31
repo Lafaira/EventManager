@@ -1,4 +1,5 @@
 ﻿
+using Event.Application.Interfaces;
 using EventService.Event.Application.Interfaces;
 using EventService.Event.Domain.Models;
 using EventService.Event.Domain.Models.RequestModel;
@@ -11,9 +12,11 @@ namespace EventService.Event.Application.Services
     public class EventService : IEventService
     {
         IEventRepository _repository;
-        public EventService(IEventRepository repository)
+        ICache _redis;
+        public EventService(IEventRepository repository, ICache redis)
         {
            _repository = repository;
+            _redis = redis;
         }
 
         public async Task<PaginatedResult> GetAllEventsAsync(PageInfo pageInfo, GetEventsQuery? filterData = null, CancellationToken ct = default)
@@ -48,8 +51,8 @@ namespace EventService.Event.Application.Services
 
         public async Task<Domain.Models.Event> GetEventAsync(int id, CancellationToken ct = default)
         {
-            var eventItem = await _repository.GetEventAsync(id, ct) ?? throw new NotFoundException("Нет события с таким id");
-
+            //var eventItem = await _repository.GetEventAsync(id, ct) ?? throw new NotFoundException("Нет события с таким id");
+            var eventItem = await _redis.GetByIdAsync(id);
             return eventItem;
         }
 
@@ -74,6 +77,8 @@ namespace EventService.Event.Application.Services
 
             await _repository.SaveChangesAsync(ct);
 
+            await _redis.RemoveCacheEventById(id);
+
             return true;
         }
 
@@ -83,6 +88,8 @@ namespace EventService.Event.Application.Services
             var eventItem = await _repository.GetEventAsync(id, ct) ?? throw new NotFoundException("Нет события с таким id");
             _repository.Remove(eventItem);
             await _repository.SaveChangesAsync(ct);
+
+            await _redis.RemoveCacheEventById(id);
             return true;
         }
 
@@ -94,6 +101,8 @@ namespace EventService.Event.Application.Services
 
             await _repository.SaveChangesAsync(ct);
 
+            await _redis.RemoveCacheEventById(eventId);
+
             return true;
         }
 
@@ -103,6 +112,10 @@ namespace EventService.Event.Application.Services
             eventItem.ReleaseSeats();
         }
 
+        public async Task<List<Domain.Models.Event>?> GetTop10()
+        {
+            return await _redis.GetTop10();
+        }
 
     }
 }

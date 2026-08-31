@@ -73,5 +73,13 @@ namespace EventService.Event.Api.Controllers
             
             return Ok();
         }
+
+        [HttpGet("events/top")]
+        public async Task<IActionResult> GetTop10()
+        {
+            var top10 = await _eventService.GetTop10();
+
+            return Ok(top10);
+        }
     }
 }

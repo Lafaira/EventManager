@@ -1,3 +1,4 @@
+using Event.Application.Interfaces;
 using Event.Infrastructure.Services;
 using EventService.Event.Api.Middleware;
 using EventService.Event.Application.Interfaces;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using StackExchange.Redis;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,6 +68,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IEventService, EventService.Event.Application.Services.EventService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddHostedService<EventBackgroundService>();
+builder.Services.AddScoped<ICache, RedisService>();
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect(builder.Configuration["Redis"])
+);
 
 var app = builder.Build();
 

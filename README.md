@@ -45,6 +45,7 @@
 | --- | --- |
 | event:{id} | Кеширует событие по id. При бронировании использует стратегию инвалидации|
 | events:top10 | Кэширует топ 10 событий. С TTL 5 минут |
+
 ## Ответы в случае ошибок
 
 | StatusCose | Описание |
@@ -89,6 +90,19 @@ docker run
 - Application — сервисы, интерфейсы репозиториев, DTO. 
 - Infrastructure —  репозитории, DbContext, внешние клиенты. 
 - Presentation — контроллеры/Minimal API эндпоинты, HTTP-маппинг, регистрация зависимостей.
+
+## Наблюдение
+В проект добавлены докер контейнеры Grafana и Prometheus. Они позволяют следить за состоянием микросервисов.
+Для запуска необходимо выполнить docker compose up
+
+Обращение к Prometheus выполняется по адресу: http://localhost:9090
+Для получения метрик:
+http://localhost:5075/metrics
+http://localhost:5224/metrics
+http://localhost:5232/metrics
+
+Для обращения к Grafana: http://localhost:3000
+
 ---
 
 > Для компиляции проекта используйте: dotnet build
@@ -97,3 +111,4 @@ docker run
 > Обратитесь к документации UserService по пути https://localhost:7165/swagger/index.html
 > Обратитесь к документации EventService по пути https://localhost:7098/swagger/index.html
 > Обратитесь к документации BookingService по пути https://localhost:7187/swagger/index.html
+

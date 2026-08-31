@@ -26,20 +26,28 @@ namespace Booking.Infrastructure.Services
         }
         public async Task CreateProducer(int eventId, BookingService.Booking.Domain.Models.Booking booking)
         {
-            var bookingConfirmed = new BookingConfirmed()
+            try
             {
-                BookingId = booking.Id,
-                EventId = eventId,
-                ConfirmedAt = booking.CreatedAt,
-                SeatsCount = 1,
-                UserId = booking.UserId,
-            };
+                var bookingConfirmed = new BookingConfirmed()
+                {
+                    BookingId = booking.Id,
+                    EventId = eventId,
+                    ConfirmedAt = booking.CreatedAt,
+                    SeatsCount = 1,
+                    UserId = booking.UserId,
+                };
 
-            var result = await _producer.ProduceAsync(KafkaTopics.BookingConfirmed, new Message<string, string>
+                var result = await _producer.ProduceAsync(KafkaTopics.BookingConfirmed, new Message<string, string>
+                {
+                    Key = eventId.ToString(),
+                    Value = JsonSerializer.Serialize(bookingConfirmed)
+                });
+            }
+            catch (Exception ex)
             {
-                Key = eventId.ToString(),
-                Value = JsonSerializer.Serialize(bookingConfirmed)
-            });
+
+            }
+          
 
 
 
